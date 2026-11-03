@@ -55,4 +55,10 @@ for para in list(root.byid('nWaterSection').all(lambda n:n.tag=='p')):
 waterform=root.byid('nGoal').parent.parent
 waterform.one(lambda n:n.tag=='p').children=['Blank hours: chronic ≤0.5 mEq/L/hr and the selected daily ceiling; acute uses the existing 1 mEq/L/hr estimate. Proposed target 158 is not a laboratory reference; edit for this patient.']
 for opt in root.byid('nPreset').all(lambda n:n.tag=='option' and n.attrs.get('value')=='0'):opt.children=['D5W — sodium-free replacement · 0 mEq/L']
+# Keep the workbook's add-on quick reference beside patient sodium.
+if not root.all(lambda n:n.attrs.get('id')=='sodiumQuickReference'):
+ patient=main.one(lambda n:n.tag=='form' and n.cls('simple-sodium-context'))
+ pos=main.children.index(patient);patient.remove()
+ top=N('div',[('class','simple-sodium-top')]);main.add(top,pos);top.add(patient)
+ top.add(P('''<section class="panel" id="sodiumQuickReference" aria-label="Rough bolus-fluid preparation reference"><h2>Bolus-fluid preparation · rough reference</h2><table><caption>0.9% NaCl + 7.2% NaCl (HyperNa)</caption><thead><tr><th scope="col">Preparation</th><th scope="col">≈165 mEq/L</th><th scope="col">≈180 mEq/L</th></tr></thead><tbody><tr><th scope="row">0.9% NaCl · 154 mEq/L</th><td>1,000 mL</td><td>1,000 mL</td></tr><tr><th scope="row">Add 7.2% NaCl · 1232 mEq/L</th><td>10 mL</td><td>25 mL</td></tr><tr><th scope="row">Final volume</th><td>1,010 mL</td><td>1,025 mL</td></tr><tr><th scope="row">Approximate fluid Na</th><td><b>165 mEq/L</b></td><td><b>180 mEq/L</b></td></tr></tbody></table><p class="help quick-reference-math">(1000 × 154 + 10 × 1232) ÷ 1010 ≈ 164.7 mEq/L<br>(1000 × 154 + 25 × 1232) ÷ 1025 ≈ 180.3 mEq/L</p><p class="help"><b>Remember potassium as needed.</b> Add to the unchanged bag; do not remove carrier for these examples. Verify the stock label. Bolus indication, volume and rate remain clinician-selected.</p></section>''').root.children[0])
 p.write_text(root.render())

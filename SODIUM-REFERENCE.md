@@ -2,6 +2,7 @@
 
 This replaces the closed PR's treatment-management workflow with a workbook-style calculation aid, built from current main. No mandatory samples, perfusion assessments, prescription recording, confirmation gates or shared-rate transfers were added.
 
+- Top quick reference: beside patient sodium, the workbook's unchanged 1,000 mL saline bag plus 10 or 25 mL of 7.2% NaCl (1232 mEq/L) produces final volumes 1,010/1,025 mL and fluid Na about 165/180 mEq/L. Add-on math is visible; bolus indication, patient volume and rate remain clinician-selected. This differs from the final-volume replacement calculator below.
 - High sodium: patient target, editable correction hours, D5W deficit and mL/hr. Existing acute reference remains; chronic default hours respect both 0.5 mEq/L/hr and the clinician-selected daily ceiling of 10, 11 or 12 mEq/L per 24 hours (default 10). Custom hours retain the existing hourly safeguard and a daily-limit warning.
 - Low sodium: select desired final fluid volume and fluid sodium, then see the crystalloid removal and D5W replacement for LRS, Plasma-Lyte and saline. Selecting the pathway sets its stock preset and clears the previous target/selection so an old result cannot appear current.
 - Substituted equations are always visible for every active tool, including actual displayed-mixture verification after stock-volume rounding. Internal calculations retain precision. Patient target and fluid concentration remain distinct.

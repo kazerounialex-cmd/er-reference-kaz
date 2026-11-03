@@ -25,3 +25,10 @@ assert.equal(sodiumWaterReference({...p,dailyLimit:12,customHours:28}).dailyWarn
 for(const dailyLimit of [0,9,13,NaN,'11',null])assert.throws(()=>sodiumWaterReference({...p,dailyLimit}));
 near(sodiumWaterReference({...p,type:'acute',dailyLimit:12}).hours,13);
 assert.throws(()=>sodiumWaterReference({...p,dailyLimit:12,customHours:25}));
+// Workbook quick reference adds stock to an unchanged 1 L saline bag.
+const saline10=mixFinal({volume:1010,base:154,stock:1232,target:(154000+12320)/1010});
+near(saline10.additive,10);near(saline10.verified,164.67326732673268);
+const saline25=mixFinal({volume:1025,base:154,stock:1232,target:(154000+30800)/1025});
+near(saline25.additive,25);near(saline25.verified,180.29268292682926);
+assert.equal(Math.round(saline10.verified),165);assert.equal(Math.round(saline25.verified),180);
+assert(html.includes('id="sodiumQuickReference"'));assert(html.includes('1,010 mL'));assert(html.includes('1,025 mL'));assert(html.includes('Remember potassium as needed.'));
