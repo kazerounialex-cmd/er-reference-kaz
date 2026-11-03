@@ -22,7 +22,7 @@
    for(const text of [new Date(s.at).toLocaleString(),fmt(s.na),delta===null?'Initial':`${delta<0?'Falling':delta>0?'Rising':'Unchanged'} ${fmt(Math.abs(delta))}`,delta===null?'—':fmt(Math.abs(delta)/((s.at-previous.at)/3600000))]){const td=document.createElement('td');td.textContent=text;tr.append(td);}rows.append(tr);
   });
   const last=samples.at(-1),prev=samples.at(-2);let note=last?`Latest recorded Na ${fmt(last.na)} mEq/L. Total change since initial: ${fmt(last.na-samples[0].na)} mEq/L.`:'No samples recorded. Reference calculations are independent.';
-  if(prev){const rate=(last.na-prev.na)/((last.at-prev.at)/3600000);note+=` ${rate<0?'Falling':rate>0?'Rising':'Unchanged'} ${fmt(Math.abs(rate))} mEq/L/hr since previous sample.`;if(Math.abs(rate)>.5)note+=' Caution: observed change exceeds the 0.5 mEq/L/hr chronic reference; assess clinical context.';}
+  if(prev){const rate=(last.na-prev.na)/((last.at-prev.at)/3600000);note+=` ${rate<0?'Falling':rate>0?'Rising':'Unchanged'} ${fmt(Math.abs(rate))} mEq/L/hr since previous sample. Math: (${last.na} − ${prev.na}) ÷ ${fmt((last.at-prev.at)/3600000)} hr ≈ ${fmt(rate)} mEq/L/hr.`;if(Math.abs(rate)>.5)note+=' Caution: observed change exceeds the 0.5 mEq/L/hr chronic reference; assess clinical context.';}
   $('naTrackerResult').textContent=note+' This tracker does not establish rolling 24-hour safety.';
  }
  function restore(){
