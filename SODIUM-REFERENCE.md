@@ -2,7 +2,7 @@
 
 This replaces the closed PR's treatment-management workflow with a workbook-style calculation aid, built from current main. No mandatory samples, perfusion assessments, prescription recording, confirmation gates or shared-rate transfers were added.
 
-- High sodium: patient target, editable correction hours, D5W deficit and mL/hr. Existing acute reference remains; chronic default hours respect both 0.5 mEq/L/hr and the previously approved 10 mEq/L/day ceiling. Custom hours retain the existing hourly safeguard and a daily-limit warning.
+- High sodium: patient target, editable correction hours, D5W deficit and mL/hr. Existing acute reference remains; chronic default hours respect both 0.5 mEq/L/hr and the clinician-selected daily ceiling of 10, 11 or 12 mEq/L per 24 hours (default 10). Custom hours retain the existing hourly safeguard and a daily-limit warning.
 - Low sodium: select desired final fluid volume and fluid sodium, then see the crystalloid removal and D5W replacement for LRS, Plasma-Lyte and saline. Selecting the pathway sets its stock preset and clears the previous target/selection so an old result cannot appear current.
 - Substituted equations are always visible for every active tool, including actual displayed-mixture verification after stock-volume rounding. Internal calculations retain precision. Patient target and fluid concentration remain distinct.
 - Optional guidance/response estimate and optional sample notes stay closed at the bottom. Sample notes never alter calculations or the shared rate. They persist within the browser tab and clear with New patient; they are not a medical record or a complete rolling-24-hour safety assessment.

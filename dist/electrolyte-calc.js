@@ -73,9 +73,11 @@ if(typeof module!=='undefined')module.exports={mixFinal,mixVolumes,magnesium,pho
 // The standalone sodium reference includes the owner-approved chronic daily ceiling.
 // Legacy workbook freeWater arithmetic remains unchanged for the Original Sheet.
 function sodiumWaterReference(p){
+ const dailyLimit=p.dailyLimit===undefined?10:p.dailyLimit;
+ if(![10,11,12].includes(dailyLimit))throw Error('Select 10, 11 or 12 mEq/L per 24 hours.');
  const chosen=p.customHours;
- const defaultHours=p.type==='chronic'?Math.max((p.current-p.target)/.5,(p.current-p.target)*24/10):null;
+ const defaultHours=p.type==='chronic'?Math.max((p.current-p.target)/.5,(p.current-p.target)*24/dailyLimit):null;
  const r=freeWater({...p,customHours:chosen??(defaultHours||null)});
- return {...r,dailyWarning:p.type==='chronic'&&r.dayChange>10+1e-12};
+ return {...r,dailyLimit,dailyWarning:p.type==='chronic'&&r.dayChange>dailyLimit+1e-12};
 }
 if(typeof module!=='undefined')module.exports.sodiumWaterReference=sodiumWaterReference;

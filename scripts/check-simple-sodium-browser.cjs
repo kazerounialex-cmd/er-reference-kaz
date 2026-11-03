@@ -5,7 +5,12 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright'),{exe
  await page.goto(base+'/sodium.html');await page.locator('#clearPatient').click();await page.waitForTimeout(30);await page.locator('#masterSpecies').selectOption('dog');await fill('masterWeight',2.79);
  assert.equal(await page.locator('#sodiumTracker').getAttribute('open'),null);assert.equal(await page.locator('#sodiumGuidance').getAttribute('open'),null);
  await fill('nCurrent',168);await fill('nGoal',155);assert.match(await text('nWater'),/4.5 mL\/hr/);assert.match(await text('nWater'),/31.2 hr/);assert.match(await text('nWater'),/140.4 mL/);assert.equal(await page.locator('#nWaterSteps').isVisible(),true);assert.match(await text('nWaterSteps'),/0.1404 L/);
- await fill('nHours',28);assert.match(await text('nWater'),/5.0 mL\/hr/);assert.match(await text('nWater'),/Caution.*10 mEq\/L/);await fill('nHours','');
+ assert.equal(await page.locator('#nDailyLimit').inputValue(),'10');
+ await page.locator('#nDailyLimit').selectOption('11');assert.match(await text('nWater'),/28.4 hr/);assert.match(await text('nWaterSteps'),/÷ 11/);
+ await page.locator('#nDailyLimit').selectOption('12');assert.match(await text('nWater'),/26.0 hr/);assert.match(await text('nWater'),/5.4 mL\/hr/);assert.match(await text('nWaterSteps'),/÷ 12/);
+ await fill('nHours',28);assert.doesNotMatch(await text('nWater'),/Caution/);await page.locator('#nDailyLimit').selectOption('11');assert.match(await text('nWater'),/selected 11/);
+ await page.locator('#nDailyLimit').selectOption('10');
+ await fill('nHours',28);assert.match(await text('nWater'),/5.0 mL\/hr/);assert.match(await text('nWater'),/Caution.*10 mEq\/L/);await fill('nHours','');await page.locator('#nType').selectOption('acute');assert.equal(await page.locator('#nDailyLimit').isDisabled(),true);assert.match(await text('nWater'),/13.0 hr/);await page.locator('#nType').selectOption('chronic');assert.equal(await page.locator('#nDailyLimit').isDisabled(),false);assert.match(await text('nWater'),/31.2 hr/);
  await fill('nFluidGoal',165);assert.match(await text('nCardMl0'),/31.8 mL/);assert.equal(await page.locator('#nCardNote0').isVisible(),true);await page.locator('[data-base="130"]').click();assert.equal(await page.locator('#nMixSteps').isVisible(),true);
  await fill('sharedFluidRate',20);const fluid=await page.evaluate(()=>sessionStorage.getItem('er-reference-fluid-v1'));
  async function shot(name){await page.evaluate(()=>{document.activeElement.blur();scrollTo(0,0);});await page.screenshot({path:'/tmp/simple-sodium-'+name+'.png',fullPage:true});}

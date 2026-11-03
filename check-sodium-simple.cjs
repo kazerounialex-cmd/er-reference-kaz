@@ -16,3 +16,12 @@ r=mixFinal({volume:1000,base:130,stock:1232,target:165});near(r.additive,31.7604
 const html=fs.readFileSync('dist/sodium.html','utf8');for(const id of ['nWaterMath','nMixMath','hResponseMath','nQuickMath','nGlucoseMath'])assert(html.includes(`<section id="${id}"`),id+' must show math without disclosure');
 assert(!/id="sodium(?:Guidance|Tracker)"[^>]*\bopen\b/.test(html));assert(html.indexOf('id="sodiumTracker"')>html.indexOf('id="mixingTool"'));
 console.log('Simple sodium reference passed: independent D5W and replacement-mixture examples, approved hourly/daily timing, custom-hour warnings, legacy arithmetic, invalid values, visible math and optional bottom tracker.');
+
+for(const [dailyLimit,hours,rate]of [[10,31.2,4.5],[11,312/11,4.95],[12,26,5.4]]){
+ const r=sodiumWaterReference({...p,dailyLimit});near(r.hours,hours);near(r.mlPerHour,rate);near(r.dayChange,dailyLimit);assert.equal(r.dailyWarning,false);
+}
+assert.equal(sodiumWaterReference({...p,dailyLimit:11,customHours:28}).dailyWarning,true);
+assert.equal(sodiumWaterReference({...p,dailyLimit:12,customHours:28}).dailyWarning,false);
+for(const dailyLimit of [0,9,13,NaN,'11',null])assert.throws(()=>sodiumWaterReference({...p,dailyLimit}));
+near(sodiumWaterReference({...p,type:'acute',dailyLimit:12}).hours,13);
+assert.throws(()=>sodiumWaterReference({...p,dailyLimit:12,customHours:25}));

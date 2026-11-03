@@ -46,9 +46,13 @@ if not body.cls('sodium-simple'):
  root.one(lambda n:n.tag=='head').add(N('link',[('rel','stylesheet'),('href','sodium-simple.css')]))
  root.one(lambda n:n.tag=='body').add(N('script',[('src','sodium-simple.js')]))
 context=root.byid('nType').parent;parent=context.parent;context.remove();parent.add(context,parent.children.index(parent.one(lambda n:n.tag=='h2'))+1)
+if not root.all(lambda n:n.attrs.get('id')=='nDailyLimit'):
+ label=P('<label>Daily correction ceiling <span>mEq/L per 24 hours</span><select id="nDailyLimit"><option value="10">10 (default)</option><option value="11">11</option><option value="12">12</option></select></label>').root.children[0]
+ parent.add(label,parent.children.index(context)+1)
+root.byid('hyperWorkflow').one(lambda n:n.cls('notice')).children=['Chronic / unknown: ≤0.5 mEq/L/hr and the selected daily ceiling (10–12 mEq/L per 24 hours). Address hypovolemia separately; free-water deficit is not a bolus or automatically additional to the full dehydration deficit.']
 for para in list(root.byid('nWaterSection').all(lambda n:n.tag=='p')):
  if ''.join(c for c in para.children if isinstance(c,str)).startswith('Estimated water needed to reach the patient target.'):para.remove()
 waterform=root.byid('nGoal').parent.parent
-waterform.one(lambda n:n.tag=='p').children=['Blank hours: chronic ≤0.5 mEq/L/hr and 10 mEq/L/day; acute uses the existing 1 mEq/L/hr estimate. Proposed target 158 is not a laboratory reference; edit for this patient.']
+waterform.one(lambda n:n.tag=='p').children=['Blank hours: chronic ≤0.5 mEq/L/hr and the selected daily ceiling; acute uses the existing 1 mEq/L/hr estimate. Proposed target 158 is not a laboratory reference; edit for this patient.']
 for opt in root.byid('nPreset').all(lambda n:n.tag=='option' and n.attrs.get('value')=='0'):opt.children=['D5W — sodium-free replacement · 0 mEq/L']
 p.write_text(root.render())
