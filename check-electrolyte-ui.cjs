@@ -64,8 +64,9 @@ page.fill({pOtherK:.6});assert.ok(page.select('.lyte-rate').every(b=>b.disabled)
 page=loadPage('dextrose.html');page.fill({dVolume:1000});assert.equal(page.ids.dMl1.textContent,'50.0 mL');
 page.pick('dTarget',2.5);assert.match(page.text('dResult'),/50\.0 mL/);assert.equal(page.ids.dResultMath.open,false);
 page.fill({dStock:1,dBase:5});assert.ok(page.select('.lyte-rate').every(b=>b.disabled));assert.equal(page.ids.dResultMath.open,false);
-page=loadPage('sodium.html');page.fill({nWeight:.47,nCurrent:177,nGoal:165});assert.match(page.text('nWater'),/0.85 mL\/hr/);
-page.fill({nGoal:177});assert.doesNotMatch(page.text('nWaterSteps'),/NaN|Infinity/);assert.match(page.text('nWaterSteps'),/no free-water deficit/);
+// High-sodium history/interval UI is covered by check-sodium-browser.cjs.
+// Retain the legacy freeWater arithmetic assertions in check-electrolytes.cjs.
+page=loadPage('sodium.html');
 page.fill({nVolume:1000,nFluidGoal:115,nPreset:'0'});page.ids.nPreset.listeners.change();assert.equal(page.ids.nStock.value,'0');assert.match(page.ids.nCardStockLabel0.textContent,/Sodium-free replacement/);page.select('[data-base="130"]')[0].listeners.click();assert.match(page.text('nMix'),/115\.4 mL/);
 page.fill({qVolumeA:900,qVolumeB:100});assert.match(page.text('nQuick'),/117.0 mEq\/L/);
 page.fill({gNa:154,gGlucose:504,gSpecies:'cat'});assert.match(page.text('nGlucose'),/160.5 mEq\/L/);assert.match(page.text('nGlucose'),/extrapolation/);
@@ -84,7 +85,7 @@ page=loadPage('phosphate.html');page.fill({pRate:40,pVolume:1000,pDose:.06});pag
 assert.equal(page.ids.pKHourlyHero.textContent,'1.8');page.patient(10);assert.equal(page.ids.pKHourlyHero.textContent,'0.88');
 page.patient('');assert.equal(page.ids.pKHourlyHero.textContent,'—');assert.ok(page.select('.lyte-rate').every(b=>b.disabled));
 page=loadPage('sodium.html');page.fill({nCurrent:177,nGoal:165,gNa:154,gGlucose:504});page.share();
-assert.match(page.text('nWater'),/36.4 mL\/hr/);page.patient(10);assert.match(page.text('nWater'),/18.2 mL\/hr/);
+assert.equal(page.ids.nWeight.value,'20');page.patient(10);assert.equal(page.ids.nWeight.value,'10');
 page.patient(undefined,'cat');assert.match(page.text('nGlucose'),/extrapolation/);
-page.patient('');assert.doesNotMatch(page.text('nWater'),/18.18/);
+page.patient('');assert.equal(page.ids.nWeight.value,'');
 console.log('Electrolyte/shared-patient integration passed: session restoration, live weight edits, species caveat and cleared results.');

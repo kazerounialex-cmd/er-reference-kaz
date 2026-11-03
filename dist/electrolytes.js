@@ -87,10 +87,6 @@ function updateDextrose(){
   });
 }
 function updateSodium(){
-  attempt('nWater',()=>{
-    const p={weight:number('nWeight'),current:number('nCurrent'),target:number('nGoal'),type:e('nType').value,customHours:number('nHours',true)},r=freeWater(p);
-    result('nWater',[['Estimated free-water deficit',format(r.liters*1000,1)+' mL'],['Free-water-only rate estimate',format(r.mlPerHour,2)+' mL/hr'],['Replacement duration',format(r.hours,1)+' hr'],['Planned average Na decrease',format(r.correction,3)+' mEq/L/hr'],['Planned change in first 24 hr',format(r.dayChange,1)+' mEq/L']],[`Free water: 0.6 × ${p.weight} × (${p.current}/${p.target} − 1) = ${format(r.liters,6)} L.`,`Duration: ${p.customHours!==null?'custom '+p.customHours+' hr':`${p.current} − ${p.target} divided by ${p.type==='acute'?1:.5} mEq/L/hr = ${format(r.hours,3)} hr`}.`,r.hours===0?'Current sodium equals the target: no free-water deficit or replacement rate is calculated.':`Rate: ${format(r.liters*1000,6)} mL ÷ ${format(r.hours,3)} hr = ${format(r.mlPerHour,3)} mL/hr.`],'This is a planning estimate, not a prediction of the measured sodium response. Account for other water/solute inputs and losses, and reassess sodium serially.');
-  });
   const fluids=[{name:'LRS',na:130,k:4},{name:'Plasma-Lyte',na:140,k:5},{name:'0.9% NaCl',na:154,k:0}];
   const stockLabel=({'1232':'7.2% NaCl','1283':'7.5% NaCl','513':'3% NaCl','0':'Sodium-free replacement'})[e('nPreset').value] || `Custom stock (${e('nStock').value||'—'} mEq/L Na)`;
   fluids.forEach((fluid,i)=>{
