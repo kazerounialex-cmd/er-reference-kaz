@@ -107,3 +107,9 @@ Optional real-browser regressions require Playwright and Chromium in the develop
 `MAINTENANCE-AUDIT.md` ranks confirmed findings and explains the fixes and remaining validation limits. Prescribed targets and existing clinical limits are unchanged. Preparation results distinguish nominal calculations from verification of displayed stock and pump quantities; a Caution requires preparation review. Dilute to the stated final volume rather than treating a rounded carrier estimate as an exact instruction.
 
 Run `python3 scripts/check-generators.py` to regenerate CRI pages twice and run the complete suite in a temporary copy, preserving hand-edited working files. With the local server running, `node scripts/check-maintenance-browser.cjs` exercises every calculator, invalid states, reset behavior, wheel/keyboard access, mobile layouts and PDF text. It requires the same optional Playwright/Chromium tools plus `pdftotext`. PDFs and screenshots use synthetic patient inputs and are written under `/tmp`.
+
+## Simple sodium reference
+
+Keep the primary sodium page close to the original workbook: preparation quantities, D5W rate/duration, and visible substituted math. Monitoring guidance and the independent tab-session tracker belong in optional disclosures at the bottom; they must not drive, block or overwrite the reference calculations or shared fluid plan.
+
+`python3 scripts/simple-sodium.py` updates the presentation; the shared finalizer also calls it after generation. `sodiumWaterReference` applies the previously approved 10 mEq/L/day chronic ceiling to the dedicated page while retaining the legacy pure `freeWater` function for the Original Sheet. Editable proposed target 158 is not a laboratory reference interval. Run the full suite after editing. Optional browser checks: `ER_REFERENCE_TEST_URL=http://127.0.0.1:8000 node scripts/check-simple-sodium-browser.cjs` (existing Playwright/Chromium/pdftotext development tools).

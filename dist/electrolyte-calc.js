@@ -69,3 +69,13 @@ function sodiumResponse({weight,patientNa,fluidNa,fluidK,rate,hours}) {
   return safeResult({perLiter,volume,change:perLiter*volume,hourly:perLiter*rate/1000,dayChange:perLiter*rate*24/1000,predicted:patientNa+perLiter*volume});
 }
 if(typeof module!=='undefined')module.exports={mixFinal,mixVolumes,magnesium,phosphate,freeWater,correctedSodium,magnesiumContext,sodiumResponse};
+
+// The standalone sodium reference includes the owner-approved chronic daily ceiling.
+// Legacy workbook freeWater arithmetic remains unchanged for the Original Sheet.
+function sodiumWaterReference(p){
+ const chosen=p.customHours;
+ const defaultHours=p.type==='chronic'?Math.max((p.current-p.target)/.5,(p.current-p.target)*24/10):null;
+ const r=freeWater({...p,customHours:chosen??(defaultHours||null)});
+ return {...r,dailyWarning:p.type==='chronic'&&r.dayChange>10+1e-12};
+}
+if(typeof module!=='undefined')module.exports.sodiumWaterReference=sodiumWaterReference;

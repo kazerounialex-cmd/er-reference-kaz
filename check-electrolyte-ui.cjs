@@ -64,7 +64,8 @@ page.fill({pOtherK:.6});assert.ok(page.select('.lyte-rate').every(b=>b.disabled)
 page=loadPage('dextrose.html');page.fill({dVolume:1000});assert.equal(page.ids.dMl1.textContent,'50.0 mL');
 page.pick('dTarget',2.5);assert.match(page.text('dResult'),/50\.0 mL/);assert.equal(page.ids.dResultMath.open,false);
 page.fill({dStock:1,dBase:5});assert.ok(page.select('.lyte-rate').every(b=>b.disabled));assert.equal(page.ids.dResultMath.open,false);
-page=loadPage('sodium.html');page.fill({nWeight:.47,nCurrent:177,nGoal:165});assert.match(page.text('nWater'),/0.85 mL\/hr/);
+// Approved 10 mEq/L/day ceiling makes the 12 mEq decline take 28.8hr (not 24).
+page=loadPage('sodium.html');page.fill({nWeight:.47,nCurrent:177,nGoal:165});assert.match(page.text('nWater'),/0.71 mL\/hr/);
 page.fill({nGoal:177});assert.doesNotMatch(page.text('nWaterSteps'),/NaN|Infinity/);assert.match(page.text('nWaterSteps'),/no free-water deficit/);
 page.fill({nVolume:1000,nFluidGoal:115,nPreset:'0'});page.ids.nPreset.listeners.change();assert.equal(page.ids.nStock.value,'0');assert.match(page.ids.nCardStockLabel0.textContent,/Sodium-free replacement/);page.select('[data-base="130"]')[0].listeners.click();assert.match(page.text('nMix'),/115\.4 mL/);
 page.fill({qVolumeA:900,qVolumeB:100});assert.match(page.text('nQuick'),/117.0 mEq\/L/);
@@ -84,7 +85,11 @@ page=loadPage('phosphate.html');page.fill({pRate:40,pVolume:1000,pDose:.06});pag
 assert.equal(page.ids.pKHourlyHero.textContent,'1.8');page.patient(10);assert.equal(page.ids.pKHourlyHero.textContent,'0.88');
 page.patient('');assert.equal(page.ids.pKHourlyHero.textContent,'—');assert.ok(page.select('.lyte-rate').every(b=>b.disabled));
 page=loadPage('sodium.html');page.fill({nCurrent:177,nGoal:165,gNa:154,gGlucose:504});page.share();
-assert.match(page.text('nWater'),/36.4 mL\/hr/);page.patient(10);assert.match(page.text('nWater'),/18.2 mL\/hr/);
+assert.match(page.text('nWater'),/30.3 mL\/hr/);page.patient(10);assert.match(page.text('nWater'),/15.2 mL\/hr/);
 page.patient(undefined,'cat');assert.match(page.text('nGlucose'),/extrapolation/);
-page.patient('');assert.doesNotMatch(page.text('nWater'),/18.18/);
+page.patient('');assert.doesNotMatch(page.text('nWater'),/15.2/);
 console.log('Electrolyte/shared-patient integration passed: session restoration, live weight edits, species caveat and cleared results.');
+
+// Equal stock/base/target is carrier-only, not a displayed division by zero.
+page=loadPage('sodium.html');page.fill({nVolume:1000,nFluidGoal:140,nStock:140,nPreset:'custom'});
+assert.match(page.ids.nCardNote1.textContent,/carrier only/);assert.doesNotMatch(page.ids.nCardNote1.textContent,/÷ \(140 − 140\)/);
