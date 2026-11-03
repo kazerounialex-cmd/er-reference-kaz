@@ -1,4 +1,4 @@
-const assert=require('node:assert/strict'),fs=require('node:fs'),{sodiumWaterReference,mixFinal,freeWater}=require('./dist/electrolyte-calc.js');
+const assert=require('node:assert/strict'),fs=require('node:fs'),{sodiumWaterReference,mixFinal,freeWater,sodiumBolusReference,sodiumBagReference}=require('./dist/electrolyte-calc.js');
 const near=(a,b)=>assert(Math.abs(a-b)<1e-9,`${a} != ${b}`);
 // Independent examples recomputed from inputs, not cached workbook results.
 const p={weight:2.79,current:168,target:155,type:'chronic',customHours:null};
@@ -31,4 +31,17 @@ near(saline10.additive,10);near(saline10.verified,164.67326732673268);
 const saline25=mixFinal({volume:1025,base:154,stock:1232,target:(154000+30800)/1025});
 near(saline25.additive,25);near(saline25.verified,180.29268292682926);
 assert.equal(Math.round(saline10.verified),165);assert.equal(Math.round(saline25.verified),180);
-assert(html.includes('id="sodiumQuickReference"'));assert(html.includes('1,010 mL'));assert(html.includes('1,025 mL'));assert(html.includes('Remember potassium as needed.'));
+assert(html.includes('id="sodiumQuickReference"'));
+// Final volumes are now dynamic; their independent numeric assertions remain above.
+assert(html.includes('Remember potassium as needed.'));
+
+const bolus=sodiumBolusReference(1000);
+for(const [i,a,b] of [[0,10,25],[1,23.430178069353326,38.02281368821293],[2,32.80224929709466,47.52851711026616]]){near(bolus[i].preparations[0].stockMl,a);near(bolus[i].preparations[1].stockMl,b);}
+near(sodiumBolusReference(500)[2].preparations[0].stockMl,16.40112464854733);
+for(const v of [0,-1,NaN,Infinity,1e308,Number.MIN_VALUE])assert.throws(()=>sodiumBolusReference(v));
+let bag=sodiumBagReference({volume:500,rate:50,current:180,target:158});near(bag.hours,10);near(bag.plannedNa,175);assert.equal(bag.dailyWarning,false);
+bag=sodiumBagReference({volume:1000,rate:40,current:180,target:158});near(bag.hours,25);near(bag.plannedNa,167.5);assert.equal(bag.dailyWarning,true);
+assert.equal(sodiumBagReference({volume:1000,rate:40,current:180,target:158,dailyLimit:12}).dailyWarning,false);
+near(sodiumBagReference({volume:1000,rate:50,current:160,target:158}).plannedNa,158);
+assert.equal(sodiumBagReference({volume:1000,rate:50}).plannedNa,null);
+for(const change of [{volume:0},{rate:0},{rate:NaN},{volume:1e308,rate:1e-100},{current:160,target:180}])assert.throws(()=>sodiumBagReference({volume:500,rate:50,current:180,target:158,...change}));

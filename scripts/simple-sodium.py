@@ -60,5 +60,18 @@ if not root.all(lambda n:n.attrs.get('id')=='sodiumQuickReference'):
  patient=main.one(lambda n:n.tag=='form' and n.cls('simple-sodium-context'))
  pos=main.children.index(patient);patient.remove()
  top=N('div',[('class','simple-sodium-top')]);main.add(top,pos);top.add(patient)
- top.add(P('''<section class="panel" id="sodiumQuickReference" aria-label="Rough bolus-fluid preparation reference"><h2>Bolus-fluid preparation · rough reference</h2><table><caption>0.9% NaCl + 7.2% NaCl (HyperNa)</caption><thead><tr><th scope="col">Preparation</th><th scope="col">≈165 mEq/L</th><th scope="col">≈180 mEq/L</th></tr></thead><tbody><tr><th scope="row">0.9% NaCl · 154 mEq/L</th><td>1,000 mL</td><td>1,000 mL</td></tr><tr><th scope="row">Add 7.2% NaCl · 1232 mEq/L</th><td>10 mL</td><td>25 mL</td></tr><tr><th scope="row">Final volume</th><td>1,010 mL</td><td>1,025 mL</td></tr><tr><th scope="row">Approximate fluid Na</th><td><b>165 mEq/L</b></td><td><b>180 mEq/L</b></td></tr></tbody></table><p class="help quick-reference-math">(1000 × 154 + 10 × 1232) ÷ 1010 ≈ 164.7 mEq/L<br>(1000 × 154 + 25 × 1232) ÷ 1025 ≈ 180.3 mEq/L</p><p class="help"><b>Remember potassium as needed.</b> Add to the unchanged bag; do not remove carrier for these examples. Verify the stock label. Bolus indication, volume and rate remain clinician-selected.</p></section>''').root.children[0])
+ top.add(N('section',[('class','panel'),('id','sodiumQuickReference'),('aria-label','Rough bolus-fluid preparation reference')]))
+# Correction time is the main free-water result; D5W quantities are secondary.
+h['heading'](root.byid('nGoal').parent.parent,'Free water deficit')
+h['heading'](root.byid('nWaterSection'),'Free water deficit')
+# Regenerate the concise add-on table from this source on each pass.
+quick=root.byid('sodiumQuickReference');quick.children=[]
+fragment=P('''<h2>Bolus-fluid preparation · rough reference</h2><form data-electrolyte><label>Base fluid remaining · mL<input id="nBolusVolume" type="number" min="0.001" step="any" value="1000" required aria-describedby="nBolusError"></label></form><table><caption>7.2% NaCl (1232 mEq/L) to ADD · no carrier removal</caption><thead><tr><th scope="col">Base fluid · Na mEq/L</th><th scope="col">≈165 mEq/L</th><th scope="col">≈180 mEq/L</th></tr></thead><tbody><tr><th scope="row">0.9% NaCl · 154</th><td id="nBolus00">10 mL</td><td id="nBolus01">25 mL</td></tr><tr><th scope="row">Plasma-Lyte / Normosol-R · 140</th><td id="nBolus10">23.4 mL</td><td id="nBolus11">38.0 mL</td></tr><tr><th scope="row">LRS · 130</th><td id="nBolus20">32.8 mL</td><td id="nBolus21">47.5 mL</td></tr></tbody></table><p id="nBolusError" class="critical-note" role="status"></p><p class="help"><b>Remember potassium as needed.</b> Use the actual base volume remaining if the bag has already started. Verify the 7.2% stock label. Bolus indication, patient volume and rate remain clinician-selected.</p><div id="nBolusMath" class="quick-reference-math" aria-live="polite"></div>''').root
+for child in list(fragment.children):quick.add(child)
+if not root.all(lambda n:n.attrs.get('id')=='nBagRate'):
+ grid=root.byid('nVolume').parent.parent
+ grid.add(P('''<div class="sodium-bag-rate"><label>Bag rate · mL/hr<input id="nBagRate" type="number" min="0.001" step="any" aria-describedby="nBagRateLinkStatus"></label><small id="nBagRateLinkStatus"></small><button type="button" id="nBagRateUseShared">Use shared rate</button></div>''').root.children[0])
+ summary=P('''<section class="sodium-bag-summary" id="nBagSection"><h3>Bag time & planned sodium</h3><div id="nBag" aria-live="polite"></div><section id="nBagMath" class="worked-math"><h3>Bag math · 0.5 mEq/L/hr reference</h3><ol id="nBagSteps"></ol></section></section>''').root.children[0]
+ grid.parent.add(summary,grid.parent.children.index(grid)+1)
+root.byid('nBagMath').one(lambda n:n.tag=='h3').children=['Bag math']
 p.write_text(root.render())
