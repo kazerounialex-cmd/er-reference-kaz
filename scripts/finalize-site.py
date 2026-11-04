@@ -44,3 +44,5 @@ runpy.run_path(str(Path(__file__).resolve().parent / 'simple-sodium.py'))
 runpy.run_path(str(Path(__file__).resolve().parent / 'apply-clinical-icons.py'))
 
 runpy.run_path(str(Path(__file__).resolve().parent / 'chocolate-source-record.py'))
+
+runpy.run_path(str(Path(__file__).resolve().parent / 'additive-terminology.py'))

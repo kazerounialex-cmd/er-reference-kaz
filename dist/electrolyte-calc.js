@@ -8,7 +8,7 @@ function mixFinal({volume, target, base, stock}) {
   if(volume<=0 || target<0 || base<0 || stock<0)throw Error('Volume must be positive; concentrations cannot be negative.');
   if(base===stock){if(target!==base)throw Error('Identical starting concentrations cannot produce this target.');return safeResult({additive:0,carrier:volume,finalVolume:volume,verified:base});}
   const proportion=(target-base)/(stock-base);
-  if(proportion<0 || proportion>1)throw Error('Target must lie between the carrier and stock concentrations.');
+  if(proportion<0 || proportion>1)throw Error('Target must lie between the carrier and additive concentrations.');
   const additive=volume*proportion,carrier=volume-additive;
   if((proportion>0&&additive<=0)||(proportion<1&&carrier<=0))throw Error('Mixture volumes are below supported numeric precision.');
   return safeResult({additive,carrier,finalVolume:volume,verified:(additive*stock+carrier*base)/volume});
@@ -20,18 +20,18 @@ function mixVolumes({volumeA, concentrationA, volumeB, concentrationB}) {
 }
 function magnesium({weight, dailyDose, hours, stock, volume}) {
   checkNumbers({weight,dailyDose,hours,stock,volume});
-  if(weight<=0 || hours<=0 || stock<=0 || volume<=0 || dailyDose<0 || dailyDose>1)throw Error('Use positive weight, hours, stock, and final volume; this tool supports 0–1 mEq/kg/day.');
+  if(weight<=0 || hours<=0 || stock<=0 || volume<=0 || dailyDose<0 || dailyDose>1)throw Error('Use positive weight, hours, additive, and final volume; this tool supports 0–1 mEq/kg/day.');
   const amount=weight*dailyDose*hours/24, additive=amount/stock;
   if((dailyDose>0&&(!(amount>0)||!(additive>0)))||!(volume/hours>0))throw Error('Magnesium preparation is below supported numeric precision.');
-  if(additive>=volume)throw Error('Final volume must exceed the stock volume so the preparation is diluted.');
+  if(additive>=volume)throw Error('Final volume must exceed the additive volume so the preparation is diluted.');
   return safeResult({amount,additive,carrier:volume-additive,pump:volume/hours,hourlyDose:dailyDose/24,delivered:amount/hours/weight*24});
 }
 function phosphate({weight,dose,fluidRate,volume,phosStock,kStock,otherK,method}) {
   checkNumbers({weight,dose,fluidRate,volume,phosStock,kStock,otherK});
-  if(weight<=0 || fluidRate<=0 || volume<=0 || phosStock<=0 || kStock<0 || dose<0 || dose>.12 || otherK<0)throw Error('Use positive weight, flow, volume, and phosphate stock; dose must be 0–0.12 mmol/kg/hr.');
+  if(weight<=0 || fluidRate<=0 || volume<=0 || phosStock<=0 || kStock<0 || dose<0 || dose>.12 || otherK<0)throw Error('Use positive weight, flow, volume, and phosphate additive; dose must be 0–0.12 mmol/kg/hr.');
   if(!['final','add'].includes(method))throw Error('Choose a preparation method.');
   const c=dose*weight/fluidRate;
-  if(c>=phosStock)throw Error('Stock must be more concentrated than the required mixture.');
+  if(c>=phosStock)throw Error('Additive must be more concentrated than the required mixture.');
   const additive=volume*c/(method==='final'?phosStock:phosStock-c);
   const carrier=method==='final'?volume-additive:volume, finalVolume=carrier+additive;
   if(dose>0&&(!(additive>0)||!(additive*phosStock>0)))throw Error('Phosphate preparation is below supported numeric precision.');
@@ -89,7 +89,7 @@ function sodiumBolusReference(volume){
   // Retain the workbook's rough saline 10/25 mL-per-liter examples.
   const stockMl=fluid.base===154?volume*(target===165?.01:.025):volume*(target-fluid.base)/(1232-target);
   const finalVolume=volume+stockMl,fluidNa=(volume*fluid.base+stockMl*1232)/finalVolume;
-  if(stockMl<=0)throw Error('Stock volume is below supported numeric precision.');
+  if(stockMl<=0)throw Error('Additive volume is below supported numeric precision.');
   return safeResult({target,stockMl,finalVolume,fluidNa});
  })}));
 }

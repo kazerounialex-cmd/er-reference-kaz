@@ -34,7 +34,7 @@ for(const method of ['add','final'])for(const weight of [0.5,5,30])for(const tar
  near(result.diluent+result.additive,result.finalVolume);
 }
 for(const change of [{weight:0},{fluidRate:0},{volume:0},{stock:0},{target:.501},{otherK:.11},{target:-1},{stock:.01},{weight:Infinity},{method:'invalid'}])assert.throws(()=>calculatePotassium({...k,...change}));
-console.log('Passed: potassium preparation methods, concurrent supplementation, stock and flow changes, workbook sample, zero-addition and invalid cases, and 36 mass-balance scenarios.');
+console.log('Passed: potassium preparation methods, concurrent supplementation, additive and flow changes, workbook sample, zero-addition and invalid cases, and 36 mass-balance scenarios.');
 
 // Exercise chart, selection, and stock-lock behavior without a browser.
 const vm=require('node:vm'),fs=require('node:fs');
@@ -69,7 +69,7 @@ elements.kOther.value='0';elements.kStock.value='2';elements.kRate.value='50';el
 // Browser resets values before reset callback; simulate that default action.
 elements.kStock.readOnly=false;elements.kStock.value='2';elements.kWeight.value='';elements.kTarget.value='';elements.potassiumForm.listeners.reset();assert.equal(elements.kStock.readOnly,true);assert.equal(elements.kStockEditor.hidden,true);assert.equal(elements.kStockDisplay.textContent,'2');assert.equal(elements.kAdd.textContent,'—');
 const html=fs.readFileSync('./dist/potassium.html','utf8');assert.match(html, /id="kStock"[^>]*readonly/);assert.ok(html.indexOf('dose-reference-title')<html.indexOf('id="kResults"'));
-console.log('Passed: live chart, lower/upper selection, worked math, flow updates, stock lock/unlock, invalid-state clearing, concurrent K conflicts, custom target, preparation mode, and reset (simulated DOM).');
+console.log('Passed: live chart, lower/upper selection, worked math, flow updates, additive lock/unlock, invalid-state clearing, concurrent K conflicts, custom target, preparation mode, and reset (simulated DOM).');
 
 // Integrate actual shared-patient events, including fields outside the form.
 for(const id of ['masterWeight','masterSpecies','clearPatient','patientSessionNote'])elements[id]=element();
@@ -150,8 +150,8 @@ for(const [id,value]of Object.entries({kWeight:'12',kRate:'44',kVolume:'500',kSt
 vm.runInContext('updatePotassium()',ctx);
 assert.equal(buttons.find(b=>b.dataset.rate==='0.5').disabled,false);
 assert.equal(elements.kRateReason0_0.hidden,false);
-assert.match(elements.kRateReason0_0.textContent,/34.1 mL delivers 0.5001 mEq\/kg\/hr total/);
-assert.match(elements.kRateReason0_0.textContent,/Above 0.5000/);
+assert.match(elements.kRateReason0_0.textContent,/Rounding warning: 0.5001 mEq\/kg\/hr/);
+assert.match(elements.kRateReason0_0.textContent,/Reduce additive to 34.0 mL/);
 // At 44.1 mL/hr, rounded stock 34.0 mL delivers 0.4998: allow it.
 elements.kRate.value='44.1';vm.runInContext('updatePotassium()',ctx);assert.equal(buttons.find(b=>b.dataset.rate==='0.5').disabled,false);assert.equal(elements.kRateReason0_0.hidden,true);
 // The clinician-approved allowance keeps 0.5005 available with a warning.
@@ -166,7 +166,7 @@ console.log('Disabled potassium reasons passed: rounding above limit, exact-limi
 // 0.136 × 44 / 12 = 0.4986666667 mEq/kg/hr. Recommendation is not applied.
 elements.kWeight.value='12';elements.kOther.value='0';elements.kRate.value='44';elements.kTarget.value='.5';vm.runInContext('updatePotassium()',ctx);
 assert.equal(elements.kAdd.textContent,'34.1');assert.equal(elements.kDelivered.textContent,'0.5001 mEq/kg/hr');
-assert.match(elements.kRateReason0_0.textContent,/to 34.0 mL: added-K concentration 0.1360 mEq\/mL; delivery 0.4987/);
+assert.match(elements.kRateReason0_0.textContent,/Reduce additive to 34.0 mL → 0.4987 mEq\/kg\/hr\.$/);
 // Exact drug 250.5 mL, exact pump 500/501 mL/hr → displayed pump 1.00.
 // 250.5 × 2 / 1000 × 1 / 1 = 0.501 mEq/kg/hr.
 const P=require('./dist/preparation-check.js');
@@ -176,3 +176,7 @@ const allowed=P.potassium(boundary,exactResult);near(allowed.delivered,.501);ass
 const above={...boundary,fluidRate:500/501.2};assert.throws(()=>P.potassium(above,calculatePotassium(above)),/0.5010/);
 assert.throws(()=>calculatePotassium({...boundary,target:.501}),/0.5/);
 console.log('Approved potassium display allowance passed: warning, four-place display, 0.1 mL reduction math, inclusive boundary and unchanged target limit.');
+
+const reducedExample={weight:12,target:.5,fluidRate:44,volume:500,stock:2,otherK:0,method:'final'};
+const reducedVerification=P.potassium(reducedExample,calculatePotassium(reducedExample)).roundDown;
+near(reducedVerification.drug,34);near(reducedVerification.concentration,.136);near(reducedVerification.delivered,.49866666666666665);

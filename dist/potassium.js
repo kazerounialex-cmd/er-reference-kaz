@@ -7,16 +7,14 @@ const bands=[[.5],[.3,.4],[.2,.25],[.1,.15],[.05]];
 const outputIds=['kAdd','kDiluent','kFinalVolume','kAddedMEq','kConcentration','kHours','kDelivered'];
 function readBase(){
  const fields=['kWeight','kRate','kVolume','kStock','kOther'];
- if(fields.some(id=>get(id).value.trim()==='' || !get(id).checkValidity()))throw Error('Enter valid weight, fluid rate, volume, stock concentration, and separate K rate.');
+ if(fields.some(id=>get(id).value.trim()==='' || !get(id).checkValidity()))throw Error('Enter valid weight, fluid rate, volume, additive concentration, and separate K rate.');
  return {weight:Number(get('kWeight').value),fluidRate:typeof FluidReferenceNumbers==='undefined'?Number(get('kRate').value):FluidReferenceNumbers.value(get('kRate')),volume:Number(get('kVolume').value),stock:Number(get('kStock').value),otherK:Number(get('kOther').value),method:get('kMethod').value};
 }
 function potassiumRoundingMessage(prepared,blocked=false){
- let note=`${blocked?'Unavailable':'Warning'} — displayed ${kVolume(prepared.drug)} mL delivers ${prepared.delivered.toFixed(4)} mEq/kg/hr total.`;
- note+=blocked?' Unrounded delivery exceeds the 0.5010 rounding allowance.':' Above 0.5000; within the clinician-selected 0.5010 rounding allowance.';
- if(prepared.roundDown){
-  const lower=prepared.roundDown;
-  note+=` Recommend reducing stock by 0.1 mL to ${kVolume(lower.drug)} mL: added-K concentration ${lower.concentration.toFixed(4)} mEq/mL; delivery ${lower.delivered.toFixed(4)} mEq/kg/hr. Revised final volume: ${kVolume(lower.volume)} mL.`;
- }else note+=' Reassess measurable stock volume and rate; a 0.1 mL reduction is not offered unless it brings delivery to ≤0.5000.';
+ let note=`${blocked?'Unavailable':'Rounding warning'}: ${prepared.delivered.toFixed(4)} mEq/kg/hr.`;
+ if(blocked)note+=' Above 0.5010.';
+ if(prepared.roundDown)note+=` Reduce additive to ${kVolume(prepared.roundDown.drug)} mL → ${prepared.roundDown.delivered.toFixed(4)} mEq/kg/hr.`;
+ else note+=' Review additive volume.';
  return note;
 }
 function renderChart(base){
@@ -76,7 +74,7 @@ function showMath(p,r){
   `Prescribed calculation before display rounding · KCl rate needed: ${p.target} − ${p.otherK} = ${kFormat(net)} mEq/kg/hr.`,
   `KCl delivery: ${kFormat(net)} × ${p.weight} kg = ${kFormat(net*p.weight)} mEq/hr.`,
   `Required added-K concentration: ${kFormat(net*p.weight)} mEq/hr ÷ ${ReferenceNumbers.display(p.fluidRate)} mL/hr = ${kFormat(c,6)} mEq/mL.`,
-  p.method==='final'?`KCl stock volume: ${p.volume} mL × ${kFormat(c,6)} mEq/mL ÷ ${p.stock} mEq/mL = ${kVolume(r.additive)} mL.`:`KCl stock volume: (${p.volume} mL × ${kFormat(c,6)} mEq/mL) ÷ (${p.stock} − ${kFormat(c,6)}) mEq/mL = ${kVolume(r.additive)} mL.`,
+  p.method==='final'?`KCl additive volume: ${p.volume} mL × ${kFormat(c,6)} mEq/mL ÷ ${p.stock} mEq/mL = ${kVolume(r.additive)} mL.`:`KCl additive volume: (${p.volume} mL × ${kFormat(c,6)} mEq/mL) ÷ (${p.stock} − ${kFormat(c,6)}) mEq/mL = ${kVolume(r.additive)} mL.`,
   `Preparation: ${kVolume(r.diluent)} mL carrier + ${kVolume(r.additive)} mL KCl = ${kVolume(r.finalVolume)} mL final.`,
   `KCl in bag: ${kVolume(r.additive)} mL × ${p.stock} mEq/mL = ${ReferenceNumbers.display(r.addedMEq)} mEq.`,
   `Displayed preparation verification: (${ReferenceNumbers.display(r.addedMEq)} mEq ÷ ${kVolume(r.finalVolume)} mL) × ${ReferenceNumbers.display(p.fluidRate)} mL/hr ÷ ${p.weight} kg + ${p.otherK} mEq/kg/hr = ${r.delivered.toFixed(4)} mEq/kg/hr.`
@@ -103,9 +101,9 @@ function updatePotassium(){
   if(get('kPump'))get('kPump').textContent=ReferenceNumbers.display(p.fluidRate)+' mL/hr';
   get('kAdd').textContent=kVolume(r.additive);
   for(const [id,value,unit] of [['kDiluent',verified.diluent,'mL'],['kFinalVolume',verified.volume,'mL'],['kAddedMEq',verified.amount,'mEq'],['kConcentration',verified.concentration,'mEq/mL'],['kHours',verified.hours,'hr'],['kDelivered',verified.delivered,'mEq/kg/hr']])get(id).textContent=(unit==='mEq/kg/hr'?value.toFixed(4):unit==='mEq/mL'?ReferenceNumbers.display(value):(unit==='mL'?kVolume(value):['mEq/kg/hr','mEq'].includes(unit)?ReferenceNumbers.display(value):kFormat(value,3)))+' '+unit;
-  get('kStatus').textContent=method==='final'?`Selected ${p.target} mEq/kg/hr. Remove ${kVolume(r.additive)} mL carrier and replace with the same volume of KCl stock.`:`Selected ${p.target} mEq/kg/hr. Add ${kVolume(r.additive)} mL KCl stock to the measured starting carrier volume.`;
+  get('kStatus').textContent=method==='final'?`Selected ${p.target} mEq/kg/hr. Remove ${kVolume(r.additive)} mL carrier and replace with the same volume of KCl additive.`:`Selected ${p.target} mEq/kg/hr. Add ${kVolume(r.additive)} mL KCl additive to the measured starting carrier volume.`;
   if(verified.deliveryWarning)get('kStatus').textContent+=' '+potassiumRoundingMessage(verified);
-  get('kStatus').textContent+=' Check measurement feasibility, especially for very small stock volumes; verify equipment precision and use a clinician-approved dilution if needed. No dilution recipe is assumed.';
+  get('kStatus').textContent+=' Check measurement feasibility, especially for very small additive volumes; verify equipment precision and use a clinician-approved dilution if needed. No dilution recipe is assumed.';
   if(verified.note)get('kStatus').textContent+=' '+verified.note;
   showMath(p,{...r,diluent:verified.diluent,finalVolume:verified.volume,addedMEq:verified.amount,delivered:verified.delivered,displayPump:verified.pump});
  }catch(e){clearSelected('Invalid: '+e.message);}
@@ -117,7 +115,7 @@ function toggleStock(){
   get('kStockToggle').textContent='Lock concentration';get('kStockToggle').setAttribute('aria-expanded','true');
   get('kLockState').textContent='Editing — verify vial';input.focus();
  }else{
-  if(input.value.trim()==='' || !Number.isFinite(Number(input.value)) || Number(input.value)<=0 || !input.checkValidity()){get('kStockHelp').textContent='Enter a positive stock concentration before locking.';input.focus();return;}
+  if(input.value.trim()==='' || !Number.isFinite(Number(input.value)) || Number(input.value)<=0 || !input.checkValidity()){get('kStockHelp').textContent='Enter a positive additive concentration before locking.';input.focus();return;}
   input.readOnly=true;get('kStockEditor').hidden=true;
   get('kStockToggle').textContent='Edit concentration';get('kStockToggle').setAttribute('aria-expanded','false');get('kLockState').textContent='Locked';
  }

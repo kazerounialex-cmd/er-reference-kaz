@@ -23,7 +23,7 @@ const CriCalc = {
   },
   mix(stock, concentration, volume) {
     this.positive(stock, concentration, volume);
-    if (concentration > stock) throw new Error('Prepared concentration exceeds stock. Choose a lower concentration.');
+    if (concentration > stock) throw new Error('Prepared concentration exceeds additive. Choose a lower concentration.');
     const drug = volume * (concentration / stock);
     this.positive(drug);
     return this.checked({ drug, diluent: volume - drug, amount: concentration * volume });
@@ -43,7 +43,7 @@ const CriCalc = {
     const mg = weight * dose * hours / 24;
     const drug = mg / stock;
     this.positive(mg, drug);
-    if (drug > volume) throw new Error('Drug stock will not fit in the final volume.');
+    if (drug > volume) throw new Error('Drug additive will not fit in the final volume.');
     return this.checked({ drug, diluent: volume - drug, mg, pump: volume / hours, hours });
   },
   insulin(weight, dose, stock, volume, pump) {
@@ -52,7 +52,7 @@ const CriCalc = {
     const units = weight * dose * hours;
     const drug = units / stock;
     this.positive(hours, units, drug);
-    if (drug > volume) throw new Error('Insulin stock will not fit in the final volume.');
+    if (drug > volume) throw new Error('Insulin additive will not fit in the final volume.');
     return this.checked({ hours, units, drug, diluent: volume - drug, concentration: units / volume, pump });
   },
   insulinPreparation({ weight, dose, stock, hours, pump, capacity }) {
