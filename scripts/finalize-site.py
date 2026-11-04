@@ -18,10 +18,14 @@ for page in (ROOT / 'dist').glob('*.html'):
         text=text.replace('<a href="sources.html"','<a href="original-sheet.html">Original Sheet</a><a href="sources.html"',1)
     if page.name=='original-sheet.html':
         text=text.replace('<a href="original-sheet.html">Original Sheet</a>','<a href="original-sheet.html" aria-current="page">Original Sheet<span class="current-page">Current</span></a>')
-    # Keep Drugs after Chocolate and before Original Sheet on every generated page.
+    # Keep Chocolate third (after Electrolytes), and Drugs before Original Sheet.
     nav_pattern=r'(<nav aria-label="Reference sections">)(.*?)(</nav>)'
     def normalize_nav(match):
         nav=match.group(2)
+        chocolate=re.search(r'<a href="chocolate\.html"[^>]*>.*?</a>',nav)
+        if chocolate and '<a href="blood-collection.html"' in nav:
+            nav=nav[:chocolate.start()]+nav[chocolate.end():]
+            nav=nav.replace('<a href="blood-collection.html"',chocolate.group(0)+'<a href="blood-collection.html"',1)
         drug=re.search(r'<a href="drugs\.html"[^>]*>.*?</a>',nav)
         if drug:
             nav=nav[:drug.start()]+nav[drug.end():]
