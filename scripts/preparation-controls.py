@@ -11,6 +11,21 @@ for path in (Path(__file__).resolve().parents[1]/'dist').glob('*.html'):
   grid.add(N('label',children=['Diluted preparation pump rate ',N('span',children=['mL/hr']),N('input',[('id','mPump'),('type','number'),('min','.001'),('step','any'),('required',None)])]))
   grid.add(N('p',[('class','help magnesium-link-note')],['Linked: pump rate = final volume ÷ duration. Edit rate or duration; the other updates. This is the complete diluted infusion, not the MgSO₄ stock rate.']))
  if path.name=='potassium.html':
+  if not root.all(lambda n:n.cls('k-preparation-grid')):
+   rate=root.byid('kRate').parent;grid=rate.parent;grid.addcls('k-preparation-grid')
+   volume=root.byid('kVolume').parent
+   stack=grid.add(N('div',[('class','k-volume-stock')]))
+   stack.add(volume)
+   stack.add(root.one(lambda n:n.cls('stock-bar')))
+   stack.add(root.byid('kStockEditor'))
+   custom=root.byid('kTarget').parent
+   chart=custom.parent;position=chart.children.index(custom)
+   note=next(n for n in chart.children[position+1:] if isinstance(n,N) and n.tag=='p')
+   box=grid.add(N('div',[('class','k-custom-panel')]))
+   box.add(custom);box.add(note);note.attrs['id']='kCustomHelp'
+   custom.children[0]='Selected / custom rate '
+   root.byid('kTarget').attrs['placeholder']='Enter 0–0.5'
+   root.byid('kTarget').attrs['aria-describedby']='kCustomHelp'
   for b in root.all(lambda n:n.cls('rate-pick')):
    if not b.all(lambda n:n.cls('rate-unit')):b.add(N('small',[('class','rate-unit')],['mEq/kg/hr']))
  for field in root.all(lambda n:n.tag=='input' and n.attrs.get('id') in ids and n.attrs.get('type')=='number'):
