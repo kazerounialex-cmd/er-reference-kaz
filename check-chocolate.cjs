@@ -17,7 +17,7 @@ function el(id=''){
  set innerHTML(html){this.html=html;for(const m of html.matchAll(/<(?:input|select|label|button|small)[^>]*id="([^"]+)"[^>]*>/g)){const n=el(m[1]);n.value=m[1].startsWith('chocUnit')?'oz':'';}},get innerHTML(){return this.html||''}};
  if(id)elements[id]=node;return node;
 }
-for(const id of ['weight','species','chocCharcoalConsideration','chocWhiteConcern','chocPoisonRecommendation','chocRiskLabel','chocQuickMath','chocDefaults','chocComparison','chocDose','chocDoseIcon','chocRiskDot','chocPosition','chocTotal','chocStatus','chocMath','chocEntryCount','chocEntries','chocAdd','chocClear','clearPatient'])el(id);
+for(const id of ['chocConcentrationReference','weight','species','chocCharcoalConsideration','chocWhiteConcern','chocPoisonRecommendation','chocRiskLabel','chocQuickMath','chocDefaults','chocComparison','chocDose','chocDoseIcon','chocRiskDot','chocPosition','chocTotal','chocStatus','chocMath','chocEntryCount','chocEntries','chocAdd','chocClear','clearPatient'])el(id);
 elements.weight.value='10';elements.species.value='Dog';
 for(const band of ['below','gi','cardiac','neuro','lethal']){cards[band]=el();cards[band].marker=el();cards[band].svg={outerHTML:`<svg data-icon="${band}"></svg>`};}
 const context={ChocolateCalc:C,ReferenceNumbers:require('./dist/number-format.js'),document:{getElementById:id=>elements[id],createElement:()=>el(),querySelectorAll:()=>Object.values(cards),querySelector:selector=>cards[selector.match(/="([^"]+)"/)[1]]}};
@@ -70,5 +70,20 @@ for(const path of ['dist/chocolate.html','scripts/build-chocolate-page.py']){
  assert(markup.includes('consider emesis up to 4 hr after ingestion'));
  assert(markup.includes('Stabilize symptomatic patients first.'));
  assert(markup.includes('Merck limits consideration to lethal exposures after weighing dehydration and hypernatremia risks.'));
- assert(markup.includes('this broader window is not attributed to Merck'));
 }
+for(const path of ['dist/chocolate.html','scripts/chocolate-sources.html']){
+ assert(fs.readFileSync(path,'utf8').includes('this broader window is not attributed to Merck'));
+}
+
+// Independently checked Merck concentration examples: 100 g eaten by a 10 kg dog.
+for(const [type,low,high] of [['milk',23,23],['dark',53,56],['baking',155,155],['cocoa',285,285],['white',0.4,0.4],['hulls',90,90]]){
+ const result=C.estimate({species:'Dog',weight:10,items:[{type,grams:100}]});near(result.lowDose,low);near(result.highDose,high);
+}
+// Published cocoa-% example: 65% → 10.075 mg/g; 20 g / 5 kg → 40.3 mg/kg.
+near(C.estimate({species:'Dog',weight:5,items:[{type:'percent',percent:65,grams:20}]}).highDose,40.3);
+const reference=elements.chocConcentrationReference.innerHTML;
+assert.equal((reference.match(/<tr>/g)||[]).length,6);
+assert(reference.includes('5.3–5.6'));assert(reference.includes('28.5'));assert(reference.includes('2.3'));
+assert(fs.readFileSync('scripts/build-chocolate-page.py','utf8').includes("scripts/chocolate-sources.html"));
+assert(!fs.readFileSync('dist/sources.html','utf8').includes('The calculator uses Merck references only.'));
+console.log('Chocolate source checks passed: all retained concentration examples, cocoa-percent example and shared concentration table.');
