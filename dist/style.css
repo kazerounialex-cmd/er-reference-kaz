@@ -480,3 +480,5 @@ body.blood-compact{background:#f4ecef}.blood-compact .blood-results .metric{bord
 @media(max-width:520px){#potassiumForm .compact-inputs>.k-preparation-grid{grid-template-columns:minmax(0,1fr)}}
 
 #potassiumForm .k-volume-stock .volume-presets{float:none;justify-content:flex-start}#potassiumForm .k-volume-stock .stock-bar>div{flex-basis:100%}#potassiumForm .k-volume-stock .stock-bar button{padding:6px 9px}
+
+#potassiumForm .k-custom-bottom{margin-top:14px}

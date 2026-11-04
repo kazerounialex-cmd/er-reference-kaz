@@ -60,6 +60,9 @@ function showMath(p,r){
  get('kMathSteps').replaceChildren(...steps.map(text=>{const li=document.createElement('li');li.textContent=text;return li;}));
 }
 function updatePotassium(){
+ // Both custom controls edit one selected rate; avoid rewriting the active input.
+ const bottom=get('kTargetBottom');
+ if(bottom&&bottom.value!==get('kTarget').value)bottom.value=get('kTarget').value;
  const method=get('kMethod').value;
  get('kSettingsLabel').textContent=method==='final'?'Preparation settings · final prepared volume':'Preparation settings · starting carrier volume';
  get('kMethodHelp').textContent=method==='final'?'Volume means the final total: remove the calculated KCl volume from measured carrier, then replace with KCl.':'Volume means the measured starting carrier: added KCl increases the final total.';
@@ -107,7 +110,10 @@ get('potassiumForm').addEventListener('submit',event=>event.preventDefault());
 document.querySelectorAll('.rate-pick').forEach(button=>button.addEventListener('click',()=>selectRate(button)));
 // The shared weight field lives outside the compact form.
 get('kWeight').addEventListener('input',updatePotassium);
-get('potassiumForm').addEventListener('input',updatePotassium);
+get('potassiumForm').addEventListener('input',event=>{
+ if(event?.target?.id==='kTargetBottom')get('kTarget').value=event.target.value;
+ updatePotassium();
+});
 get('potassiumForm').addEventListener('reset',()=>setTimeout(()=>{
  get('kStock').readOnly=true;get('kStockEditor').hidden=true;get('kStockToggle').textContent='Edit concentration';get('kStockToggle').setAttribute('aria-expanded','false');get('kLockState').textContent='Locked';updatePotassium();
 },0));

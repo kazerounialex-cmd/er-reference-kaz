@@ -40,7 +40,7 @@ console.log('Passed: potassium preparation methods, concurrent supplementation, 
 const vm=require('node:vm'),fs=require('node:fs');
 const elements={};
 function element(value='') {return {value,textContent:'',hidden:false,readOnly:false,open:false,disabled:false,attrs:{},listeners:{},children:[],addEventListener(name,fn){const previous=this.listeners[name];this.listeners[name]=previous?event=>{previous(event);fn(event);}:fn;},dispatchEvent(event){this.listeners[event.type]?.(event);},setAttribute(k,v){this.attrs[k]=v;},replaceChildren(...children){this.children=children;},focus(){},scrollIntoView(){},checkValidity(){return this.value!=='' && Number.isFinite(Number(this.value)) && Number(this.value)>=0;}};}
-for(const id of ['kPeripheralWarning','kPeripheralHeading','kPeripheralMessage','kWeight','kTarget','kRate','kVolume','kStock','kOther','kMethod','kMethodHelp','kAdd','kDiluent','kFinalVolume','kAddedMEq','kConcentration','kHours','kDelivered','kStatus','potassiumForm','kStockDisplay','kChartStatus','kMath','kMathSteps','kStockToggle','kStockEditor','kLockState','kStockHelp','kResults','kSettingsLabel'])elements[id]=element();
+for(const id of ['kPeripheralWarning','kPeripheralHeading','kPeripheralMessage','kWeight','kTarget','kTargetBottom','kRate','kVolume','kStock','kOther','kMethod','kMethodHelp','kAdd','kDiluent','kFinalVolume','kAddedMEq','kConcentration','kHours','kDelivered','kStatus','potassiumForm','kStockDisplay','kChartStatus','kMath','kMathSteps','kStockToggle','kStockEditor','kLockState','kStockHelp','kResults','kSettingsLabel'])elements[id]=element();
 const rates=[[.5],[.3,.4],[.2,.25],[.1,.15],[.05]];
 const buttons=[];
 rates.forEach((rr,i)=>{elements['kEq'+i]=element();elements['kMl'+i]=element();rr.forEach(rate=>{const b=element();b.dataset={rate:String(rate),row:String(i)};buttons.push(b);});});
@@ -133,3 +133,13 @@ const shownAdd=20.4,shownCarrier=1000;
 const expectedShownDose=shownAdd*2/(shownCarrier+shownAdd)*50/20;
 assert(Math.abs(Number(elements.kDelivered.textContent.split(' ')[0])-expectedShownDose)<.005);
 assert.equal(elements.kDelivered.textContent,'0.10 mEq/kg/hr');
+
+// Both visible rate controls edit one canonical selection, not separate infusions.
+for(const [id,value]of Object.entries({kWeight:'10',kRate:'50',kVolume:'1000',kStock:'2',kOther:'0',kMethod:'final',kTarget:''}))elements[id].value=value;
+elements.kTargetBottom.value='.2';elements.potassiumForm.listeners.input({target:{id:'kTargetBottom',value:'.2'}});
+assert.equal(elements.kTarget.value,'.2');assert.equal(elements.kAdd.textContent,'20.0');
+elements.kTarget.value='.1';elements.potassiumForm.listeners.input({target:elements.kTarget});assert.equal(elements.kTargetBottom.value,'.1');assert.equal(elements.kAdd.textContent,'10.0');
+buttons.find(b=>b.dataset.rate==='0.3').listeners.click();assert.equal(elements.kTargetBottom.value,'0.3');assert.equal(elements.kAdd.textContent,'30.0');
+for(const value of ['.6','']){elements.kTargetBottom.value=value;elements.potassiumForm.listeners.input({target:{id:'kTargetBottom',value}});assert.equal(elements.kTarget.value,value);assert.equal(elements.kAdd.textContent,'—');}
+elements.kTarget.value='';elements.kTargetBottom.value='.3';elements.potassiumForm.listeners.reset();assert.equal(elements.kTargetBottom.value,'');
+console.log('Dual potassium custom controls passed: bottom/top edits, chart selection, one-dose calculations, invalid/blank clearing and reset.');

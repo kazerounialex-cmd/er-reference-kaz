@@ -26,6 +26,12 @@ for path in (Path(__file__).resolve().parents[1]/'dist').glob('*.html'):
    custom.children[0]='Selected / custom rate '
    root.byid('kTarget').attrs['placeholder']='Enter 0–0.5'
    root.byid('kTarget').attrs['aria-describedby']='kCustomHelp'
+  if not root.all(lambda n:n.attrs.get('id')=='kTargetBottom'):
+   chart=root.one(lambda n:n.cls('compact-dose-chart'))
+   bottom=chart.add(N('div',[('class','k-custom-panel k-custom-bottom')]))
+   label=bottom.add(N('label',[('class','custom-target')],['Selected / custom rate ',N('span',children=['mEq/kg/hr'])]))
+   label.add(N('input',[('id','kTargetBottom'),('type','number'),('min','0'),('max','0.5'),('step','any'),('required',None),('placeholder','Enter 0–0.5'),('aria-describedby','kCustomBottomHelp')]))
+   bottom.add(N('p',[('class','help'),('id','kCustomBottomHelp')],['Same selected rate as the control above. Editing either updates this preparation.']))
   for b in root.all(lambda n:n.cls('rate-pick')):
    if not b.all(lambda n:n.cls('rate-unit')):b.add(N('small',[('class','rate-unit')],['mEq/kg/hr']))
  for field in root.all(lambda n:n.tag=='input' and n.attrs.get('id') in ids and n.attrs.get('type')=='number'):
