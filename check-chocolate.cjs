@@ -17,7 +17,7 @@ function el(id=''){
  set innerHTML(html){this.html=html;for(const m of html.matchAll(/<(?:input|select|label|button|small)[^>]*id="([^"]+)"[^>]*>/g)){const n=el(m[1]);n.value=m[1].startsWith('chocUnit')?'oz':'';}},get innerHTML(){return this.html||''}};
  if(id)elements[id]=node;return node;
 }
-for(const id of ['weight','species','chocWhiteConcern','chocPoisonRecommendation','chocRiskLabel','chocQuickMath','chocDefaults','chocComparison','chocDose','chocDoseIcon','chocRiskDot','chocPosition','chocTotal','chocStatus','chocMath','chocEntryCount','chocEntries','chocAdd','chocClear','clearPatient'])el(id);
+for(const id of ['weight','species','chocCharcoalConsideration','chocWhiteConcern','chocPoisonRecommendation','chocRiskLabel','chocQuickMath','chocDefaults','chocComparison','chocDose','chocDoseIcon','chocRiskDot','chocPosition','chocTotal','chocStatus','chocMath','chocEntryCount','chocEntries','chocAdd','chocClear','clearPatient'])el(id);
 elements.weight.value='10';elements.species.value='Dog';
 for(const band of ['below','gi','cardiac','neuro','lethal']){cards[band]=el();cards[band].marker=el();cards[band].svg={outerHTML:`<svg data-icon="${band}"></svg>`};}
 const context={ChocolateCalc:C,ReferenceNumbers:require('./dist/number-format.js'),document:{getElementById:id=>elements[id],createElement:()=>el(),querySelectorAll:()=>Object.values(cards),querySelector:selector=>cards[selector.match(/="([^"]+)"/)[1]]}};
@@ -46,3 +46,29 @@ elements.chocAmount1.value='1';elements.chocAmount1.fire('input');elements.chocA
 elements.chocSource3.value='milk';elements.chocSource3.fire('input');elements.chocAmount3.value='1';elements.chocAmount3.fire('input');assert.equal(elements.chocWhiteConcern.hidden,false);
 elements.chocClear.fire('click');assert.equal(elements.chocEntryCount.textContent,'1 product');assert.equal(elements.chocDose.textContent,'Compare chocolate types');
 console.log('Chocolate checks passed: Merck values, combined products, cocoa %, risk boundaries, invalid inputs, oz/g preservation, dynamic entries, source changes, clearing and feline block.');
+
+// Milk: 2.3 mg/g / 10 kg. Only cardiac, neurologic and severe estimates show charcoal.
+elements.chocSource4.value='milk';elements.chocSource4.fire('input');elements.chocG4.fire('click');
+for(const [grams,visible] of [[0,false],[86,false],[173,false],[174,true],[260,true],[261,true],[434,true],[435,true]]){
+ elements.chocAmount4.value=String(grams);elements.chocAmount4.fire('input');
+ assert.equal(elements.chocCharcoalConsideration.hidden,!visible,`charcoal at ${grams} g milk / 10 kg`);
+}
+// A dark-chocolate range of 38.16–40.32 mg/kg uses the upper reference band.
+elements.chocSource4.value='dark';elements.chocSource4.fire('input');elements.chocAmount4.value='72';elements.chocAmount4.fire('input');assert.equal(elements.chocCharcoalConsideration.hidden,false);
+elements.chocAmount4.value='-1';elements.chocAmount4.fire('input');assert.equal(elements.chocCharcoalConsideration.hidden,true);
+elements.chocAmount4.value='500';elements.chocAmount4.fire('input');assert.equal(elements.chocCharcoalConsideration.hidden,false);
+elements.species.value='Cat';elements.species.fire('input');assert.equal(elements.chocCharcoalConsideration.hidden,true);
+elements.species.value='Dog';elements.species.fire('input');assert.equal(elements.chocCharcoalConsideration.hidden,false);
+elements.chocSource4.value='';elements.chocSource4.fire('input');assert.equal(elements.chocCharcoalConsideration.hidden,true);
+elements.chocSource4.value='milk';elements.chocSource4.fire('input');assert.equal(elements.chocCharcoalConsideration.hidden,false);
+elements.chocAdd.fire('click');assert.equal(elements.chocCharcoalConsideration.hidden,true);
+elements.clearPatient.fire('click');assert.equal(elements.chocCharcoalConsideration.hidden,true);
+console.log('Charcoal consideration visibility passed: low/GI, cardiac, neurologic, severe, range crossing, invalid, feline, unknown, incomplete and reset states.');
+
+for(const path of ['dist/chocolate.html','scripts/build-chocolate-page.py']){
+ const markup=fs.readFileSync(path,'utf8');
+ assert(markup.includes('consider emesis up to 4 hr after ingestion'));
+ assert(markup.includes('Stabilize symptomatic patients first.'));
+ assert(markup.includes('Merck limits consideration to lethal exposures after weighing dehydration and hypernatremia risks.'));
+ assert(markup.includes('this broader window is not attributed to Merck'));
+}

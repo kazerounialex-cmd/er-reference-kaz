@@ -12,5 +12,6 @@ with tempfile.TemporaryDirectory(prefix='er-generator-check-') as temporary:
     # A second pass catches duplicate navigation, controls and shared scripts.
     for attempt in range(2):
         subprocess.run(['python3', 'scripts/build-cri-pages.py'], cwd=checkout, check=True)
+        subprocess.run(['python3', 'scripts/build-chocolate-page.py'], cwd=checkout, check=True)
         subprocess.run(['node', 'scripts/check-all.cjs'], cwd=checkout, check=True)
-print('CRI generation and complete suite passed twice in an isolated temporary copy.')
+print('CRI/chocolate generation and complete suite passed twice in an isolated temporary copy.')

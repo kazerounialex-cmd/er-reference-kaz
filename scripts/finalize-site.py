@@ -36,3 +36,5 @@ runpy.run_path(str(Path(__file__).resolve().parent / 'shared-fluid-reference.py'
 
 runpy.run_path(str(Path(__file__).resolve().parent / 'clinical-workflow.py'))
 runpy.run_path(str(Path(__file__).resolve().parent / 'simple-sodium.py'))
+
+runpy.run_path(str(Path(__file__).resolve().parent / 'apply-clinical-icons.py'))
