@@ -205,25 +205,23 @@ body[data-cri="norepinephrine"] #targetPump[readonly]{background:var(--tone-eef1
 /* Broad reference-color bands sit directly behind the dose marker. */
 .chocolate-band-track .chocolate-band{border-top-width:1px}
 .chocolate-band-track .chocolate-band[data-choc-band="lethal"]{border-top-width:3px}
-.chocolate-risk-line{top:26px;height:26px;background:linear-gradient(to right,#b8c2cb 0%,#b8c2cb 10%,#f0e442 10%,#f0e442 20%,#0072b2 20%,#0072b2 30%,#e69f00 30%,#e69f00 50%,#242424 50%,#242424 100%);border-top:1px solid rgba(23,46,59,.35);border-bottom:1px solid rgba(23,46,59,.35)}
 .chocolate-risk-dot{top:30px;width:19px;height:19px;border:3px solid white;outline:2px solid var(--ink);background:var(--ink)}
 
 /* Distinct blue/orange bands replace the easily confused blue/purple pair. */
-.chocolate-band[data-choc-band="below"]{border-top-color:#b8c2cb}
-.chocolate-band[data-choc-band="gi"]{border-top-color:#f0e442}
-.chocolate-band[data-choc-band="cardiac"]{border-top-color:#0072b2}
-.chocolate-band[data-choc-band="neuro"]{border-top-color:#e69f00}
-.chocolate-band[data-choc-band="lethal"]{border-top-color:#242424}
 .chocolate-risk-line::after{content:'';position:absolute;inset:0;background:linear-gradient(to right,transparent calc(10% - 1px),white calc(10% - 1px),white calc(10% + 1px),transparent calc(10% + 1px),transparent calc(20% - 1px),white calc(20% - 1px),white calc(20% + 1px),transparent calc(20% + 1px),transparent calc(30% - 1px),white calc(30% - 1px),white calc(30% + 1px),transparent calc(30% + 1px),transparent calc(50% - 1px),white calc(50% - 1px),white calc(50% + 1px),transparent calc(50% + 1px));pointer-events:none}
 
-/* Risk progresses from a cool pale tone to warm, dark tones; texture is redundant. */
-.chocolate-risk-line{background:linear-gradient(to right,#c5d9e7 0%,#c5d9e7 10%,#f3dc62 10%,#f3dc62 20%,#e8a126 20%,#e8a126 30%,#a83b20 30%,#a83b20 50%,#292026 50%,#292026 100%)}
-.chocolate-risk-line::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:repeating-linear-gradient(135deg,transparent 0 6px,rgba(255,255,255,.45) 6px 8px),repeating-linear-gradient(45deg,transparent 0 6px,rgba(255,255,255,.4) 6px 8px),repeating-linear-gradient(135deg,transparent 0 6px,rgba(255,255,255,.4) 6px 8px);background-size:20% 100%,50% 100%,50% 100%;background-position:37.5% 0,100% 0,100% 0;background-repeat:no-repeat}
-.chocolate-band[data-choc-band="below"]{border-top-color:#c5d9e7}
-.chocolate-band[data-choc-band="gi"]{border-top-color:#f3dc62}
-.chocolate-band[data-choc-band="cardiac"]{border-top-color:#e8a126}
-.chocolate-band[data-choc-band="neuro"]{border-top-color:#a83b20}
-.chocolate-band[data-choc-band="lethal"]{border-top-color:#292026}
+/* Severity uses a restrained sequence; labels and sparse textures remain redundant cues. */
+:root{--risk-below:#c5d9e7;--risk-gi:#f0df88;--risk-cardiac:#e3b15d;--risk-neuro:#b45b49;--risk-severe:#7c3542}
+.chocolate-risk-line{top:26px;height:18px;background:linear-gradient(to right,var(--risk-below) 0%,var(--risk-below) 10%,var(--risk-gi) 10%,var(--risk-gi) 20%,var(--risk-cardiac) 20%,var(--risk-cardiac) 30%,var(--risk-neuro) 30%,var(--risk-neuro) 50%,var(--risk-severe) 50%,var(--risk-severe) 100%);border-block:1px solid rgba(23,46,59,.35)}
+.chocolate-risk-line::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:repeating-linear-gradient(135deg,transparent 0 13px,rgba(255,255,255,.35) 13px 14px),repeating-linear-gradient(45deg,transparent 0 15px,rgba(255,255,255,.28) 15px 16px);background-size:20% 100%,50% 100%;background-position:37.5% 0,100% 0;background-repeat:no-repeat}
+.chocolate-risk-dot{top:26px}
+.chocolate-band[data-choc-band="below"]{border-top-color:var(--risk-below)}
+.chocolate-band[data-choc-band="gi"]{border-top-color:var(--risk-gi)}
+.chocolate-band[data-choc-band="cardiac"]{border-top-color:var(--risk-cardiac)}
+.chocolate-band[data-choc-band="neuro"]{border-top-color:var(--risk-neuro)}
+.chocolate-band[data-choc-band="lethal"]{border-top-color:var(--risk-severe)}
+.clinical-icon{display:block;flex:none;width:32px;height:32px;color:var(--ink)}
+#chocDoseIcon{flex-basis:32px}#chocDoseIcon .clinical-icon{width:32px;height:32px}
 
 .chocolate-entry .chocolate-portion-hint{grid-column:1/-1;margin:0;font-size:11px;line-height:1.5;border-left:3px solid var(--accent);padding:5px 8px;background:var(--tone-edf4f6)}
 
@@ -451,3 +449,20 @@ body.blood-compact{background:#f4ecef}.blood-compact .blood-results .metric{bord
 .print-bg-guide table{table-layout:fixed}.print-bg-guide th:first-child{width:32%}
 
 .preparation-check:not(:empty){border-left:3px solid var(--ink);padding:6px 9px;font-size:12px;line-height:1.4;background:var(--tone-fff4dc)}.preparation-check:empty{display:none}
+
+/* Consistent clinical surfaces: category hue is a small accent, not a status signal. */
+@media screen{
+ :root{--tone-f4f6f5:#eef2f4;--tone-dce4e5:#c5d0d7;--tone-b9c9ce:#758997}
+ .sidebar{background:#f3f6f8}
+ .sidebar nav a{background:#fff;border-color:#c5d0d7;border-left-width:3px}
+ .sidebar .nav-group>summary{background:#fff;color:var(--ink);border:1px solid #a2b3be;border-left:4px solid var(--group-color,var(--accent))}
+ .sidebar .nav-group>summary:hover{background:#eaf2f6;filter:none}
+ .sidebar nav a:hover{background:#eaf2f6;border-color:#758997;border-left-color:var(--nav-color)}
+ .sidebar nav a[aria-current=page],.sidebar nav a[aria-current=page]:hover{background:#e4f2fa;border:2px solid var(--accent);border-left-width:6px;padding-left:9px;box-shadow:none}
+ .blood-compact{background:var(--paper)}
+ .blood-compact .panel,.blood-compact .blood-results .metric{background:#fff;border-color:var(--line)}
+ .blood-compact .blood-results{background:#edf5f8}
+ .blood-compact .contribution-grid>div{border-color:var(--line)}
+ .blood-compact .blood-results .metric strong{color:var(--ink)}
+ .blood-compact .notice{background:#faf1df;border-left-color:#b17821;color:var(--ink)}
+}
