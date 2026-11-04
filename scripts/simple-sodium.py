@@ -49,6 +49,10 @@ context=root.byid('nType').parent;parent=context.parent;context.remove();parent.
 if not root.all(lambda n:n.attrs.get('id')=='nDailyLimit'):
  label=P('<label>Daily correction ceiling <span>mEq/L per 24 hours</span><select id="nDailyLimit"><option value="10">10 (default)</option><option value="11">11</option><option value="12">12</option></select></label>').root.children[0]
  parent.add(label,parent.children.index(context)+1)
+for option in root.byid('nDailyLimit').all(lambda n:n.tag=='option'):
+ option.attrs.pop('selected',None)
+ option.children=[option.attrs['value']+(' (default)' if option.attrs['value']=='12' else '')]
+ if option.attrs['value']=='12':option.attrs['selected']=None
 root.byid('hyperWorkflow').one(lambda n:n.cls('notice')).children=['Chronic / unknown: ≤0.5 mEq/L/hr and the selected daily ceiling (10–12 mEq/L per 24 hours). Address hypovolemia separately; free-water deficit is not a bolus or automatically additional to the full dehydration deficit.']
 for para in list(root.byid('nWaterSection').all(lambda n:n.tag=='p')):
  if ''.join(c for c in para.children if isinstance(c,str)).startswith('Estimated water needed to reach the patient target.'):para.remove()

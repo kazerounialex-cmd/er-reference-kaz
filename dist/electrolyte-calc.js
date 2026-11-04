@@ -73,7 +73,7 @@ if(typeof module!=='undefined')module.exports={mixFinal,mixVolumes,magnesium,pho
 // The standalone sodium reference includes the owner-approved chronic daily ceiling.
 // Legacy workbook freeWater arithmetic remains unchanged for the Original Sheet.
 function sodiumWaterReference(p){
- const dailyLimit=p.dailyLimit===undefined?10:p.dailyLimit;
+ const dailyLimit=p.dailyLimit===undefined?12:p.dailyLimit;
  if(![10,11,12].includes(dailyLimit))throw Error('Select 10, 11 or 12 mEq/L per 24 hours.');
  const chosen=p.customHours;
  const defaultHours=p.type==='chronic'?Math.max((p.current-p.target)/.5,(p.current-p.target)*24/dailyLimit):null;
@@ -93,7 +93,7 @@ function sodiumBolusReference(volume){
   return safeResult({target,stockMl,finalVolume,fluidNa});
  })}));
 }
-function sodiumBagReference({volume,rate,current=null,target=null,dailyLimit=10}){
+function sodiumBagReference({volume,rate,current=null,target=null,dailyLimit=12}){
  checkNumbers({volume,rate});if(volume<=0||rate<=0)throw Error('Enter a positive final volume and bag rate.');
  const hours=volume/rate;if(!Number.isFinite(hours)||hours<=0)throw Error('Bag duration is outside supported numeric limits.');
  if(current===null&&target===null)return {hours,plannedNa:null};
