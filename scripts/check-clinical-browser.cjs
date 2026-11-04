@@ -86,16 +86,19 @@ const {chromium}=require('playwright');
  await go('potassium.html');await page.locator('#masterSpecies').selectOption('dog');
  await fill('masterWeight',12);await fill('kRate',44);await fill('kVolume',500);
  const maxRate=page.locator('.rate-pick[data-rate="0.5"]'),roundingReason=page.locator('#kRateReason0_0');
- assert.equal(await maxRate.isDisabled(),true);assert.equal(await roundingReason.isVisible(),true);
- assert.match(await roundingReason.innerText(),/34.1 mL stock gives 0.500133/);
+ assert.equal(await maxRate.isEnabled(),true);assert.equal(await roundingReason.isVisible(),true);
+ assert.match(await roundingReason.innerText(),/34.1 mL delivers 0.5001/);
  assert.equal(await maxRate.getAttribute('aria-describedby'),'kRateReason0_0');
  await page.locator('#kRow0').screenshot({path:'/tmp/potassium-disabled-reason.png'});
  await fill('kRate',44.1);assert.equal(await maxRate.isEnabled(),true);assert.equal(await roundingReason.isVisible(),false);
  await fill('kRate',50);await maxRate.click();assert.equal(await text('kAdd'),'30.0');
- await fill('kRate',44);assert.equal(await text('kAdd'),'—');
+ await fill('kRate',44);assert.equal(await text('kAdd'),'34.1');assert.equal(await text('kDelivered'),'0.5001 mEq/kg/hr');assert.match(await roundingReason.innerText(),/34.0 mL: added-K concentration 0.1360/);assert.equal(await roundingReason.evaluate(n=>n.parentElement.tagName==='TD'&&n.parentElement.contains(document.getElementById('kMl0'))),true);
  await page.locator('#kSettingsLabel').click();await fill('kOther',.2);
  assert.match(await text('kRateReason4_0'),/Other potassium infusions already exceed/);
- await fill('kOther',0);await fill('kVolume','');assert.equal(await roundingReason.isVisible(),false);
+ await fill('kOther',0);await fill('masterWeight',1);await fill('kVolume',1000);await fill('kRate',500/501);
+ assert.equal(await maxRate.isEnabled(),true);assert.equal(await text('kDelivered'),'0.5010 mEq/kg/hr');
+ await fill('kRate',500/501.2);assert.equal(await maxRate.isDisabled(),true);assert.equal(await text('kAdd'),'—');
+ await fill('kVolume','');assert.equal(await roundingReason.isVisible(),false);
  // Visit every page to exercise actual navigation scripts and layout at two widths.
  const files=require('node:fs').readdirSync('dist').filter(f=>f.endsWith('.html'));
  for(const width of [1440,390]){

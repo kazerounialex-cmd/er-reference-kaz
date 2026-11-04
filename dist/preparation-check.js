@@ -21,10 +21,16 @@ const PreparationCheck=(()=>{
   return checked({stockVolume:model.drug,stock:model.stock,volume:model.volume,pump:model.pump,weight,target:model.dose,multiplier,unit:model.unit});
  }
  function potassium(p,r){
-  const result=checked({stockVolume:r.additive,stock:p.stock,volume:r.finalVolume,carrier:p.method==='add'?p.volume:undefined,pump:p.fluidRate,weight:p.weight,target:p.target,other:p.otherK,unit:'mEq/kg/hr'});
-  if(result.delivered>.5+1e-12){
-   const error=Error('Displayed preparation exceeds the existing 0.5 mEq/kg/hr supplemental-potassium limit. Verify stock volume and pump rate.');
-   error.code='POTASSIUM_DISPLAY_LIMIT';error.preparation=result;error.limit=.5;
+  const options={stock:p.stock,volume:r.finalVolume,carrier:p.method==='add'?p.volume:undefined,pump:p.fluidRate,weight:p.weight,target:p.target,other:p.otherK,unit:'mEq/kg/hr'};
+  const result=checked({...options,stockVolume:r.additive});
+  result.deliveryWarning=result.delivered>.5+1e-12;
+  if(result.deliveryWarning&&result.drug>.1){
+   const reduced=checked({...options,stockVolume:Number((result.drug-.1).toFixed(10))});
+   if(reduced.delivered<=.5+1e-12)result.roundDown=reduced;
+  }
+  if(result.delivered>.501+1e-12){
+   const error=Error('Displayed preparation exceeds the clinician-selected 0.5010 mEq/kg/hr rounding allowance. Verify stock volume and pump rate.');
+   error.code='POTASSIUM_DISPLAY_LIMIT';error.preparation=result;error.limit=.501;
    throw error;
   }
   return result;

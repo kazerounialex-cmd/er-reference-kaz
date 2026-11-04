@@ -17,7 +17,7 @@ const {chromium}=require('playwright');
  await patient('index.html',20);for(const [id,value] of Object.entries({dehydration:8,hours:12,bolus:400,losses:5}))await fill(id,value);
  assert.equal(await text('total'),'157.0');await mobile('fluids');await fill('dehydration','');assert.equal(await text('total'),'—');
  await patient('potassium.html',1);for(const [id,value] of Object.entries({kRate:10,kVolume:12,kTarget:.05}))await fill(id,value);
- assert.equal(await text('kAdd'),'0.03');assert.equal(await text('kDelivered'),'0.05 mEq/kg/hr');await mobile('potassium');
+ assert.equal(await text('kAdd'),'0.03');assert.equal(await text('kDelivered'),'0.0500 mEq/kg/hr');await mobile('potassium');
  await page.locator('#kStockToggle').click();await fill('kStock',0);assert.equal(await text('kAdd'),'—');
  await patient('magnesium.html',4.38);assert.equal(await page.locator('#mHours').inputValue(),'24');await fill('mVolume',24);await fill('mDose',1);assert.match(await text('mResult'),/Caution/);await mobile('magnesium');await fill('mHours','');assert.match(await text('mResult'),/Invalid/);
  await patient('phosphate.html',.5);for(const [id,value] of Object.entries({pRate:10,pVolume:12,pDose:.06}))await fill(id,value);

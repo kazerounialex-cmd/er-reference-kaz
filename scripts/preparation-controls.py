@@ -42,6 +42,18 @@ for path in (Path(__file__).resolve().parents[1]/'dist').glob('*.html'):
     parent=b.parent;position=parent.children.index(b)
     option=parent.add(N('div',[('class','k-rate-option')]),position);option.add(b)
     option.add(N('small',[('id',reason_id),('class','k-rate-unavailable'),('hidden',None)]))
+  # Put reasons in the right-hand stock-volume cell, beside the option's result.
+  for row in range(5):
+   amount=root.byid('kMl'+str(row))
+   if amount.tag=='td':
+    cell=amount;id=cell.attrs.pop('id')
+    value=N('span',[('id',id)],cell.children);cell.children=[];cell.add(value)
+   else:cell=amount.parent
+   for j,b in enumerate(root.all(lambda n:n.tag=='button' and n.attrs.get('data-row')==str(row))):
+    cell.add(root.byid(f'kRateReason{row}_{j}'))
+  if not root.all(lambda n:n.attrs.get('id')=='kRoundingPolicy'):
+   conventions=root.one(lambda n:n.tag=='details' and n.cls('panel'))
+   conventions.add(N('p',[('id','kRoundingPolicy')],['Targets remain limited to 0.5 mEq/kg/hr. The clinician-selected display-rounding allowance permits calculated delivery through 0.5010 mEq/kg/hr, with a warning above 0.5000. This allowance is not an AAHA recommendation. Suggested stock reductions are not applied automatically. Calculations retain full precision.']))
  for field in root.all(lambda n:n.tag=='input' and n.attrs.get('id') in ids and n.attrs.get('type')=='number'):
   id=field.attrs['id']
   if root.all(lambda n:n.attrs.get('data-volume-for')==id):continue

@@ -10,20 +10,29 @@ function readBase(){
  if(fields.some(id=>get(id).value.trim()==='' || !get(id).checkValidity()))throw Error('Enter valid weight, fluid rate, volume, stock concentration, and separate K rate.');
  return {weight:Number(get('kWeight').value),fluidRate:typeof FluidReferenceNumbers==='undefined'?Number(get('kRate').value):FluidReferenceNumbers.value(get('kRate')),volume:Number(get('kVolume').value),stock:Number(get('kStock').value),otherK:Number(get('kOther').value),method:get('kMethod').value};
 }
+function potassiumRoundingMessage(prepared,blocked=false){
+ let note=`${blocked?'Unavailable':'Warning'} — displayed ${kVolume(prepared.drug)} mL delivers ${prepared.delivered.toFixed(4)} mEq/kg/hr total.`;
+ note+=blocked?' Unrounded delivery exceeds the 0.5010 rounding allowance.':' Above 0.5000; within the clinician-selected 0.5010 rounding allowance.';
+ if(prepared.roundDown){
+  const lower=prepared.roundDown;
+  note+=` Recommend reducing stock by 0.1 mL to ${kVolume(lower.drug)} mL: added-K concentration ${lower.concentration.toFixed(4)} mEq/mL; delivery ${lower.delivered.toFixed(4)} mEq/kg/hr. Revised final volume: ${kVolume(lower.volume)} mL.`;
+ }else note+=' Reassess measurable stock volume and rate; a 0.1 mL reduction is not offered unless it brings delivery to ≤0.5000.';
+ return note;
+}
 function renderChart(base){
  let available=0;
  bands.forEach((rates,i)=>{
   const reasons=[];
   const values=rates.map((target,j)=>{try{
-   const p={...base,target},result=calculatePotassium(p);PreparationCheck.potassium(p,result);return result;
+   const p={...base,target},result=calculatePotassium(p),verified=PreparationCheck.potassium(p,result);
+   if(verified.deliveryWarning)reasons[j]=potassiumRoundingMessage(verified);
+   return result;
   }catch(error){
    let reason=error.message;
    if(error.code==='POTASSIUM_DISPLAY_LIMIT'){
-    const prepared=error.preparation,compact=ReferenceNumbers.format(prepared.delivered,6);
-    const delivered=Number(compact)>error.limit?compact:String(prepared.delivered);
-    reason=`Rounding: ${kVolume(prepared.drug)} mL stock gives ${delivered} mEq/kg/hr total (> ${error.limit} limit).`;
+    reason=potassiumRoundingMessage(error.preparation,true);
    }
-   reasons[j]=base?'Unavailable — '+reason:'';
+   reasons[j]=base?(error.code==='POTASSIUM_DISPLAY_LIMIT'?reason:'Unavailable — '+reason):'';
    return null;
   }});
   get('kEq'+i).textContent=values.map(v=>v?ReferenceNumbers.display(v.addedMEq)+' mEq':'—').join(' – ');
@@ -70,7 +79,7 @@ function showMath(p,r){
   p.method==='final'?`KCl stock volume: ${p.volume} mL × ${kFormat(c,6)} mEq/mL ÷ ${p.stock} mEq/mL = ${kVolume(r.additive)} mL.`:`KCl stock volume: (${p.volume} mL × ${kFormat(c,6)} mEq/mL) ÷ (${p.stock} − ${kFormat(c,6)}) mEq/mL = ${kVolume(r.additive)} mL.`,
   `Preparation: ${kVolume(r.diluent)} mL carrier + ${kVolume(r.additive)} mL KCl = ${kVolume(r.finalVolume)} mL final.`,
   `KCl in bag: ${kVolume(r.additive)} mL × ${p.stock} mEq/mL = ${ReferenceNumbers.display(r.addedMEq)} mEq.`,
-  `Displayed preparation verification: (${ReferenceNumbers.display(r.addedMEq)} mEq ÷ ${kVolume(r.finalVolume)} mL) × ${ReferenceNumbers.display(p.fluidRate)} mL/hr ÷ ${p.weight} kg + ${p.otherK} mEq/kg/hr = ${ReferenceNumbers.display(r.delivered)} mEq/kg/hr.`
+  `Displayed preparation verification: (${ReferenceNumbers.display(r.addedMEq)} mEq ÷ ${kVolume(r.finalVolume)} mL) × ${ReferenceNumbers.display(p.fluidRate)} mL/hr ÷ ${p.weight} kg + ${p.otherK} mEq/kg/hr = ${r.delivered.toFixed(4)} mEq/kg/hr.`
  ];
  get('kMathSteps').replaceChildren(...steps.map(text=>{const li=document.createElement('li');li.textContent=text;return li;}));
 }
@@ -93,8 +102,9 @@ function updatePotassium(){
   updatePeripheralWarning(r.finalConcentration/1000);
   if(get('kPump'))get('kPump').textContent=ReferenceNumbers.display(p.fluidRate)+' mL/hr';
   get('kAdd').textContent=kVolume(r.additive);
-  for(const [id,value,unit] of [['kDiluent',verified.diluent,'mL'],['kFinalVolume',verified.volume,'mL'],['kAddedMEq',verified.amount,'mEq'],['kConcentration',verified.concentration,'mEq/mL'],['kHours',verified.hours,'hr'],['kDelivered',verified.delivered,'mEq/kg/hr']])get(id).textContent=(unit==='mEq/mL'?ReferenceNumbers.display(value):(unit==='mL'?kVolume(value):['mEq/kg/hr','mEq'].includes(unit)?ReferenceNumbers.display(value):kFormat(value,3)))+' '+unit;
+  for(const [id,value,unit] of [['kDiluent',verified.diluent,'mL'],['kFinalVolume',verified.volume,'mL'],['kAddedMEq',verified.amount,'mEq'],['kConcentration',verified.concentration,'mEq/mL'],['kHours',verified.hours,'hr'],['kDelivered',verified.delivered,'mEq/kg/hr']])get(id).textContent=(unit==='mEq/kg/hr'?value.toFixed(4):unit==='mEq/mL'?ReferenceNumbers.display(value):(unit==='mL'?kVolume(value):['mEq/kg/hr','mEq'].includes(unit)?ReferenceNumbers.display(value):kFormat(value,3)))+' '+unit;
   get('kStatus').textContent=method==='final'?`Selected ${p.target} mEq/kg/hr. Remove ${kVolume(r.additive)} mL carrier and replace with the same volume of KCl stock.`:`Selected ${p.target} mEq/kg/hr. Add ${kVolume(r.additive)} mL KCl stock to the measured starting carrier volume.`;
+  if(verified.deliveryWarning)get('kStatus').textContent+=' '+potassiumRoundingMessage(verified);
   get('kStatus').textContent+=' Check measurement feasibility, especially for very small stock volumes; verify equipment precision and use a clinician-approved dilution if needed. No dilution recipe is assumed.';
   if(verified.note)get('kStatus').textContent+=' '+verified.note;
   showMath(p,{...r,diluent:verified.diluent,finalVolume:verified.volume,addedMEq:verified.amount,delivered:verified.delivered,displayPump:verified.pump});
