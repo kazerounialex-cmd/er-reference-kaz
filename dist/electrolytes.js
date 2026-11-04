@@ -106,16 +106,20 @@ function updateSodium(){
   const fluids=[{name:'LRS',na:130,k:4},{name:'Plasma-Lyte',na:140,k:5},{name:'0.9% NaCl',na:154,k:0}];
   const stockLabel=({'1232':'7.2% NaCl','1283':'7.5% NaCl','513':'3% NaCl','0':'Sodium-free replacement (D5W)'})[e('nPreset').value] || `Custom stock (${e('nStock').value||'—'} mEq/L Na)`;
   fluids.forEach((fluid,i)=>{
-    e('nCardStockLabel'+i).textContent=`${stockLabel} TO ADD TO ${fluid.name}`;
+    e('nCardStockLabel'+i).textContent='';e('nCardStockName'+i).textContent='';e('nCardFinal'+i).textContent='';
     try{
       const r=mixFinal({volume:number('nVolume'),target:number('nFluidGoal'),base:fluid.na,stock:number('nStock')});
       const verified=PreparationCheck.mixture({stockVolume:r.additive,stock:number('nStock'),base:fluid.na,volume:number('nVolume'),target:number('nFluidGoal'),unit:'mEq/L Na'});
-      e('nCardMl'+i).textContent=ml(r.additive);e('nCardCarrier'+i).textContent='Carrier retained: '+ml(r.carrier);
-      const instruction=Number(e('nStock').value)===fluid.na?'Use carrier only.':`Replace carrier with the shown mL of ${stockLabel}.`;
+      e('nCardStockLabel'+i).textContent='ADD';
+      e('nCardMl'+i).textContent=ml(verified.drug);
+      e('nCardStockName'+i).textContent=`of ${stockLabel}`;
+      e('nCardCarrier'+i).textContent=`to ${ml(verified.diluent)} of ${fluid.name}.`;
+      e('nCardFinal'+i).textContent=`Final prepared volume: ${ml(verified.volume)}`;
+      const instruction=Number(e('nStock').value)===fluid.na?'Use carrier only.':`If starting with a full ${ml(verified.volume)} bag, remove ${ml(verified.drug)} before adding ${stockLabel}.`;
       e('nCardNote'+i).textContent=`${instruction} Mixture Na ≈ ${PreparationCheck.concentration(verified.concentration)} mEq/L; native K ≈ ${format(fluid.k*r.carrier/r.finalVolume)} mEq/L.${verified.changed?' Caution: stock volume is rounded.':''}`;
 
       document.querySelector(`[data-base="${fluid.na}"]`).disabled=false;
-    }catch(error){e('nCardMl'+i).textContent='Not achievable';e('nCardCarrier'+i).textContent='Carrier: — mL';e('nCardNote'+i).textContent=error.message;document.querySelector(`[data-base="${fluid.na}"]`).disabled=true;}
+    }catch(error){e('nCardMl'+i).textContent='Not achievable';e('nCardCarrier'+i).textContent='No preparation available.';e('nCardNote'+i).textContent=error.message;document.querySelector(`[data-base="${fluid.na}"]`).disabled=true;}
     document.querySelector(`[data-base="${fluid.na}"]`).setAttribute('aria-pressed',String(e('nBase').value===String(fluid.na)));
   });
   e('hFluidNa').value='';

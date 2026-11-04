@@ -67,11 +67,11 @@ page.fill({dStock:1,dBase:5});assert.ok(page.select('.lyte-rate').every(b=>b.dis
 // Approved 10 mEq/L/day ceiling makes the 12 mEq decline take 28.8hr (not 24).
 page=loadPage('sodium.html');assert.equal(page.ids.nDailyLimit.value,'12');page.fill({nDailyLimit:10,nWeight:.47,nCurrent:177,nGoal:165});assert.match(page.text('nWater'),/0.71 mL\/hr/);
 page.fill({nGoal:177});assert.doesNotMatch(page.text('nWaterSteps'),/NaN|Infinity/);assert.match(page.text('nWaterSteps'),/no free-water deficit/);
-page.fill({nVolume:1000,nFluidGoal:115,nPreset:'0'});page.ids.nPreset.listeners.change();assert.equal(page.ids.nStock.value,'0');assert.match(page.ids.nCardStockLabel0.textContent,/Sodium-free replacement/);page.select('[data-base="130"]')[0].listeners.click();assert.match(page.text('nMix'),/115\.4 mL/);
+page.fill({nVolume:1000,nFluidGoal:115,nPreset:'0'});page.ids.nPreset.listeners.change();assert.equal(page.ids.nStock.value,'0');assert.match(page.ids.nCardStockName0.textContent,/Sodium-free replacement/);page.select('[data-base="130"]')[0].listeners.click();assert.match(page.text('nMix'),/115\.4 mL/);
 page.fill({qVolumeA:900,qVolumeB:100});assert.match(page.text('nQuick'),/117.0 mEq\/L/);
 page.fill({gNa:154,gGlucose:504,gSpecies:'cat'});assert.match(page.text('nGlucose'),/160.5 mEq\/L/);assert.match(page.text('nGlucose'),/extrapolation/);
 page.select('[data-path="hypo"]')[0].listeners.click();assert.equal(page.ids.hypoWorkflow.hidden,false);assert.equal(page.ids.hyperWorkflow.hidden,true);
-page.fill({nWeight:10,nCurrent:115,nFluidGoal:140,nStock:1232,nPreset:'1232'});assert.equal(page.ids.nCardStockLabel0.textContent,'7.2% NaCl TO ADD TO LRS');assert.equal(page.ids.nCardStockLabel1.textContent,'7.2% NaCl TO ADD TO Plasma-Lyte');assert.match(page.ids.nCardNote0.textContent,/of 7.2% NaCl/);page.select('[data-base="130"]')[0].listeners.click();page.fill({hFluidK:0,hRate:25,hHours:24});assert.match(page.text('hResponse'),/2.1 mEq\/L/);
+page.fill({nWeight:10,nCurrent:115,nFluidGoal:140,nStock:1232,nPreset:'1232'});assert.equal(page.ids.nCardStockLabel0.textContent,'ADD');assert.equal(page.ids.nCardStockName0.textContent,'of 7.2% NaCl');assert.equal(page.ids.nCardStockName1.textContent,'of 7.2% NaCl');assert.match(page.ids.nCardCarrier0.textContent,/of LRS/);assert.match(page.ids.nCardCarrier1.textContent,/of Plasma-Lyte/);assert.match(page.ids.nCardNote0.textContent,/before adding 7.2% NaCl/);page.select('[data-base="130"]')[0].listeners.click();page.fill({hFluidK:0,hRate:25,hHours:24});assert.match(page.text('hResponse'),/2.1 mEq\/L/);
 page.ids.nFluidGoal.value='145';page.ids.nFluidGoal.listeners.input();assert.equal(page.ids.hFluidK.value,'');assert.equal(page.ids.hResponseMath.open,false);
 page.fill({nFluidGoal:135});assert.equal(page.select('[data-base="140"]')[0].disabled,true);assert.equal(page.select('[data-base="130"]')[0].disabled,false);
 console.log('Passed simulated UI: all four pages, live dose choices, worked math, stock locking, invalid-state clearing, K contribution, sodium presets, equal-target state, and feline source caveat.');
@@ -93,3 +93,16 @@ console.log('Electrolyte/shared-patient integration passed: session restoration,
 // Equal stock/base/target is carrier-only, not a displayed division by zero.
 page=loadPage('sodium.html');page.fill({nVolume:1000,nFluidGoal:140,nStock:140,nPreset:'custom'});
 assert.match(page.ids.nCardNote1.textContent,/carrier only/);assert.doesNotMatch(page.ids.nCardNote1.textContent,/÷ \(140 − 140\)/);
+
+// Independent 1000 mL / 180 mEq/L recipes using 1232 mEq/L replacement.
+page=loadPage('sodium.html');page.fill({nVolume:1000,nFluidGoal:180,nStock:1232,nPreset:'1232'});
+for(const [i,amount,carrier,name]of [[0,'45.4','954.6','LRS'],[1,'36.6','963.4','Plasma-Lyte'],[2,'24.1','975.9','0.9% NaCl']]){
+ assert.equal(page.ids['nCardStockLabel'+i].textContent,'ADD');
+ assert.equal(page.ids['nCardMl'+i].textContent,amount+' mL');
+ assert.equal(page.ids['nCardStockName'+i].textContent,'of 7.2% NaCl');
+ assert.equal(page.ids['nCardCarrier'+i].textContent,'to '+carrier+' mL of '+name+'.');
+ assert.equal(page.ids['nCardFinal'+i].textContent,'Final prepared volume: 1000.0 mL');
+}
+page.fill({nVolume:''});
+for(let i=0;i<3;i++){assert.equal(page.ids['nCardStockLabel'+i].textContent,'');assert.equal(page.ids['nCardStockName'+i].textContent,'');assert.equal(page.ids['nCardFinal'+i].textContent,'');assert.equal(page.ids['nCardCarrier'+i].textContent,'No preparation available.');}
+console.log('Sodium card recipes passed: all three rounded additions, retained carrier, final volume, preset wording and invalid-state clearing.');
