@@ -18,7 +18,7 @@ class Page(HTMLParser):
 pages={path.name:Page(path.read_text()) for path in DIST.glob('*.html')}
 def nav_links(page):
     return [data.get('href') for tag,data,parents in page.nodes if tag=='a' and 'data-sodium-jump' not in data and any(t=='nav' and d.get('aria-label')=='Reference sections' for t,d in parents)]
-expected_nav=['index.html','potassium.html','magnesium.html','phosphate.html','sodium.html','dextrose.html','blood-collection.html','cri-fentanyl.html','cri-lidocaine.html','cri-ketamine.html','cri-norepinephrine.html','cri-insulin.html','cri-reglan.html','chocolate.html','drugs.html','original-sheet.html','sources.html']
+expected_nav=['index.html','potassium.html','magnesium.html','phosphate.html','sodium.html','dextrose.html','chocolate.html','blood-collection.html','cri-fentanyl.html','cri-lidocaine.html','cri-ketamine.html','cri-norepinephrine.html','cri-insulin.html','cri-reglan.html','drugs.html','original-sheet.html','sources.html']
 errors=[]
 for name,page in pages.items():
     if nav_links(page)!=expected_nav:errors.append(name+': reference navigation differs from the required order')
