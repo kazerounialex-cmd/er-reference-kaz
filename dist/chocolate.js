@@ -2,6 +2,11 @@
   const $=id=>document.getElementById(id),show=x=>ReferenceNumbers.format(x),items=new Map();
   const names={below:'Below the listed dose threshold',gi:'GI effects reference',cardiac:'Cardiac effects reference',neuro:'Neurologic effects reference',lethal:'Severe toxicity / LD₅₀ reference'};
   const dose=x=>ReferenceNumbers.display(x);
+  // Source table and exposure estimates use the same unrounded concentration data.
+  $('chocConcentrationReference').innerHTML=Object.entries(ChocolateCalc.products).filter(([key])=>key!=='percent').map(([,product])=>{
+    const range=(low,high)=>low===high?show(low):show(low)+'–'+show(high);
+    return `<tr><th scope="row">${product.name}</th><td>${range(product.low,product.high)}</td><td>${range(product.low*ChocolateCalc.gramsPerOz,product.high*ChocolateCalc.gramsPerOz)}</td></tr>`;
+  }).join('');
   let nextId=0;
   function update(){
     $('chocDose').className='';$('chocRiskLabel').textContent='';$('chocQuickMath').textContent='';
