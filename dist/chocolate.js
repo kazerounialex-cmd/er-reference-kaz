@@ -6,7 +6,7 @@
   function update(){
     $('chocDose').className='';$('chocRiskLabel').textContent='';$('chocQuickMath').textContent='';
     $('chocDose').textContent='—';$('chocTotal').textContent='—';$('chocMath').textContent='Complete the exposure entries to show the calculation.';
-    $('chocPoisonRecommendation').hidden=true;$('chocWhiteConcern').hidden=true;
+    $('chocCharcoalConsideration').hidden=true;$('chocPoisonRecommendation').hidden=true;$('chocWhiteConcern').hidden=true;
     $('chocComparison').innerHTML='';$('chocComparison').hidden=true;$('chocDefaults').textContent='';
     $('chocDoseIcon').innerHTML='';$('chocDoseIcon').hidden=true;$('chocRiskDot').hidden=true;
     $('chocPosition').textContent='Enter an exposure to place the dose marker.';
@@ -39,6 +39,7 @@
       const r=ChocolateCalc.estimate({species,weight,items:entries});
       const range=(low,high)=>low===high?show(low):show(low)+'–'+show(high);
       $('chocPoisonRecommendation').hidden=r.highDose<40;
+      $('chocCharcoalConsideration').hidden=!['cardiac','neuro','lethal'].includes(r.band);
       $('chocWhiteConcern').hidden=!r.rows.some(row=>row.type==='white' && row.grams>0);
       $('chocDose').textContent=(r.lowDose===r.highDose?dose(r.lowDose):dose(r.lowDose)+'–'+dose(r.highDose))+' mg/kg';
       $('chocRiskLabel').textContent=names[r.band];

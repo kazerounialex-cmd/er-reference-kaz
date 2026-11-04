@@ -98,7 +98,7 @@ body[data-cri="norepinephrine"] #targetPump[readonly]{background:var(--tone-eef1
 @media print{#criPrintCard .table-wrap{overflow:visible!important}#criPrintCard th,#criPrintCard td,#norepiTitration th,#norepiTitration td{min-width:0!important}#criPrintCard,#norepiTitration{overflow-wrap:anywhere}}
 
 /* Chocolate: compact inputs, symbolic illustrations and non-color selection cues. */
-.chocolate-main{padding-top:22px}.chocolate-main h1{font-size:36px;margin:8px 0 14px}.chocolate-main .panel{padding:18px;margin-bottom:14px}.chocolate-main h2{margin-bottom:12px}.chocolate-main p{font-size:13px}.chocolate-layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:14px}.chocolate-entry{display:grid;grid-template-columns:minmax(0,2fr) minmax(75px,1fr) 65px;gap:8px;align-items:end;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}.chocolate-entry label{min-width:0;margin:0;font-size:12px}.chocolate-entry input,.chocolate-entry select{min-width:0;padding:8px;margin-top:4px;font-size:14px}.chocolate-entry button{padding:6px 10px;justify-self:start;font-size:11px}.chocolate-entry [hidden]{display:none}.chocolate-entry .entry-concentration{grid-column:1/-1;margin:0;font-size:11px}.chocolate-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.chocolate-actions button{font-size:12px;padding:8px 10px}.chocolate-actions small{font-size:11px}.chocolate-results{background:var(--tone-edf4f6);align-self:start;min-height:240px}.chocolate-results>strong{font-size:32px;line-height:1.25;display:block;overflow-wrap:anywhere}.chocolate-results #chocStatus{font-weight:750}.chocolate-bands{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.chocolate-band{border:1px solid var(--tone-8799a2);border-radius:7px;padding:12px 8px;min-width:0;position:relative}.chocolate-band h3{font-size:13px;margin:6px 0}.chocolate-band>b{font-size:12px}.chocolate-band p{font-size:11px;line-height:1.4;margin:6px 0}.chocolate-band .band-match{display:block;font-size:9px;font-weight:850;min-height:14px}.chocolate-band[data-active="true"]{outline:3px solid var(--ink);outline-offset:-3px;background:var(--tone-e9edf9)}.chocolate-band[data-choc-band="lethal"]{border-style:double;border-width:3px}.clinical-mini-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.clinical-mini-grid h3{font-size:13px;margin:0 0 4px}.clinical-mini-grid p{margin:0}.chocolate-main pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.6 system-ui,sans-serif}
+.chocolate-main{padding-top:22px}.chocolate-main h1{font-size:36px;margin:8px 0 14px}.chocolate-main .panel{padding:18px;margin-bottom:14px}.chocolate-main h2{margin-bottom:12px}.chocolate-main p{font-size:13px}.chocolate-layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:14px}.chocolate-entry{display:grid;grid-template-columns:minmax(0,2fr) minmax(75px,1fr) 65px;gap:8px;align-items:end;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}.chocolate-entry label{min-width:0;margin:0;font-size:12px}.chocolate-entry input,.chocolate-entry select{min-width:0;padding:8px;margin-top:4px;font-size:14px}.chocolate-entry button{padding:6px 10px;justify-self:start;font-size:11px}.chocolate-entry [hidden]{display:none}.chocolate-entry .entry-concentration{grid-column:1/-1;margin:0;font-size:11px}.chocolate-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.chocolate-actions button{font-size:12px;padding:8px 10px}.chocolate-actions small{font-size:11px}.chocolate-results{background:var(--tone-edf4f6);align-self:start;min-height:240px}.chocolate-results>strong{font-size:32px;line-height:1.25;display:block;overflow-wrap:anywhere}.chocolate-results #chocStatus{font-weight:750}.chocolate-bands{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.chocolate-band{border:1px solid var(--tone-8799a2);border-radius:7px;padding:12px 8px;min-width:0;position:relative}.chocolate-band h3{font-size:13px;margin:6px 0}.chocolate-band>b{font-size:12px}.chocolate-band p{font-size:11px;line-height:1.4;margin:6px 0}.chocolate-band .band-match{display:block;font-size:9px;font-weight:850;min-height:14px}.chocolate-band[data-active="true"]{outline:3px solid var(--ink);outline-offset:-3px;background:var(--tone-e9edf9)}.chocolate-band[data-choc-band="lethal"]{border-style:double;border-width:3px}.clinical-mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}.clinical-mini-grid>[hidden]{display:none}.clinical-mini-grid h3{font-size:13px;margin:0 0 4px}.clinical-mini-grid p{margin:0}.chocolate-main pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.6 system-ui,sans-serif}
 @media(max-width:1100px){.chocolate-layout{grid-template-columns:1fr}.chocolate-results{min-height:0}.chocolate-bands{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:600px){.chocolate-main .panel{padding:14px}.chocolate-bands{grid-template-columns:repeat(2,minmax(0,1fr))}.chocolate-entry{grid-template-columns:minmax(0,1fr) 65px}.chocolate-entry>label:first-child{grid-column:1/-1}.clinical-mini-grid{grid-template-columns:1fr}.chocolate-results>strong{font-size:28px}}
 
 /* Keep all five bands connected, including on narrow screens. */
@@ -450,19 +450,18 @@ body.blood-compact{background:#f4ecef}.blood-compact .blood-results .metric{bord
 
 .preparation-check:not(:empty){border-left:3px solid var(--ink);padding:6px 9px;font-size:12px;line-height:1.4;background:var(--tone-fff4dc)}.preparation-check:empty{display:none}
 
-/* Consistent clinical surfaces: category hue is a small accent, not a status signal. */
+/* Page identity follows the familiar category accents; clinical warnings keep their own colors. */
 @media screen{
- :root{--tone-f4f6f5:#eef2f4;--tone-dce4e5:#c5d0d7;--tone-b9c9ce:#758997}
- .sidebar{background:#f3f6f8}
- .sidebar nav a{background:#fff;border-color:#c5d0d7;border-left-width:3px}
- .sidebar .nav-group>summary{background:#fff;color:var(--ink);border:1px solid #a2b3be;border-left:4px solid var(--group-color,var(--accent))}
- .sidebar .nav-group>summary:hover{background:#eaf2f6;filter:none}
- .sidebar nav a:hover{background:#eaf2f6;border-color:#758997;border-left-color:var(--nav-color)}
- .sidebar nav a[aria-current=page],.sidebar nav a[aria-current=page]:hover{background:#e4f2fa;border:2px solid var(--accent);border-left-width:6px;padding-left:9px;box-shadow:none}
- .blood-compact{background:var(--paper)}
- .blood-compact .panel,.blood-compact .blood-results .metric{background:#fff;border-color:var(--line)}
- .blood-compact .blood-results{background:#edf5f8}
- .blood-compact .contribution-grid>div{border-color:var(--line)}
- .blood-compact .blood-results .metric strong{color:var(--ink)}
- .blood-compact .notice{background:#faf1df;border-left-color:#b17821;color:var(--ink)}
+ body{--page-accent:#617587;--page-background:#eef2f5;--page-sidebar:#e5edf3;background:var(--page-background)}
+ body.fluid-page{--page-accent:#286b98;--page-background:#eaf2fa;--page-sidebar:#dfeaf5}
+ body.potassium-page{--page-accent:#246d70;--page-background:#e8f3f0;--page-sidebar:#dceee9}
+ body[data-cri]{--page-accent:#68508c;--page-background:#f0eaf6;--page-sidebar:#e8def2}
+ body[data-tool="blood"]{--page-accent:#8b526b;--page-background:#f4ecef;--page-sidebar:#efdee6}
+ body[data-tool="chocolate"]{--page-accent:#94621b;--page-background:#faf1e1;--page-sidebar:#f4e7cd}
+ body[data-tool="drugs"]{--page-accent:#426d86;--page-background:#eaf2f7;--page-sidebar:#deebf2}
+ body:has(.sidebar a[href="original-sheet.html"][aria-current="page"]){--page-accent:#617587;--page-background:#edf1f5;--page-sidebar:#e2e9f0}
+ body:has(.sidebar a[href="sources.html"][aria-current="page"]){--page-accent:#71675b;--page-background:#f5f1ec;--page-sidebar:#ece5dc}
+ .sidebar{background:var(--page-sidebar)}
+ .patient-header{border-bottom:2px solid var(--page-accent)}
+ main>.eyebrow{color:var(--page-accent)}
 }
