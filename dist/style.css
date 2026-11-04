@@ -482,3 +482,5 @@ body.blood-compact{background:#f4ecef}.blood-compact .blood-results .metric{bord
 #potassiumForm .k-volume-stock .volume-presets{float:none;justify-content:flex-start}#potassiumForm .k-volume-stock .stock-bar>div{flex-basis:100%}#potassiumForm .k-volume-stock .stock-bar button{padding:6px 9px}
 
 #potassiumForm .k-custom-bottom{margin-top:14px}
+
+#potassiumForm .k-rate-option{min-width:0;max-width:210px}#potassiumForm .k-rate-unavailable{display:block;font-size:11px;line-height:1.4;font-weight:500;color:#634b22;background:#faf1df;border-left:2px solid #ad7b2a;padding:5px 7px;margin-top:5px;overflow-wrap:anywhere}#potassiumForm .k-rate-unavailable[hidden]{display:none}

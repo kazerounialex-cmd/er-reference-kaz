@@ -13,17 +13,32 @@ function readBase(){
 function renderChart(base){
  let available=0;
  bands.forEach((rates,i)=>{
-  const values=rates.map(target=>{try{const p={...base,target};const result=calculatePotassium(p);PreparationCheck.potassium(p,result);return result;}catch{return null;}});
+  const reasons=[];
+  const values=rates.map((target,j)=>{try{
+   const p={...base,target},result=calculatePotassium(p);PreparationCheck.potassium(p,result);return result;
+  }catch(error){
+   let reason=error.message;
+   if(error.code==='POTASSIUM_DISPLAY_LIMIT'){
+    const prepared=error.preparation,compact=ReferenceNumbers.format(prepared.delivered,6);
+    const delivered=Number(compact)>error.limit?compact:String(prepared.delivered);
+    reason=`Rounding: ${kVolume(prepared.drug)} mL stock gives ${delivered} mEq/kg/hr total (> ${error.limit} limit).`;
+   }
+   reasons[j]=base?'Unavailable — '+reason:'';
+   return null;
+  }});
   get('kEq'+i).textContent=values.map(v=>v?ReferenceNumbers.display(v.addedMEq)+' mEq':'—').join(' – ');
   get('kMl'+i).textContent=values.map(v=>v?kVolume(v.additive)+' mL':'— mL').join(' – ');
   document.querySelectorAll(`[data-row="${i}"]`).forEach((button,j)=>{
    button.disabled=!values[j];
+   const reason=get(`kRateReason${i}_${j}`);
+   if(reason){reason.textContent=reasons[j]||'';reason.hidden=!reasons[j];}
+   button.setAttribute('title',reasons[j]||'');
    const selected=get('kTarget').value!=='' && Number(get('kTarget').value)===rates[j];
    button.setAttribute('aria-pressed',String(selected));
    if(values[j])available++;
   });
  });
- get('kChartStatus').textContent=!base?'Enter weight, fluid rate, and preparation volume to fill the chart.':available===8?'Calculated from the current inputs. Choose a rate to see its math.':'Some rates cannot be prepared with these inputs (—). Check separate potassium infusions, fluid rate, and stock concentration.';
+ get('kChartStatus').textContent=!base?'Enter weight, fluid rate, and preparation volume to fill the chart.':available===8?'Calculated from the current inputs. Choose a rate to see its math.':'Some rates are unavailable (—). The explanation is shown beside each disabled option.';
 }
 function updatePeripheralWarning(concentration=null){
  const box=get('kPeripheralWarning');

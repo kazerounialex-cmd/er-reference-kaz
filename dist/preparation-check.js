@@ -22,7 +22,11 @@ const PreparationCheck=(()=>{
  }
  function potassium(p,r){
   const result=checked({stockVolume:r.additive,stock:p.stock,volume:r.finalVolume,carrier:p.method==='add'?p.volume:undefined,pump:p.fluidRate,weight:p.weight,target:p.target,other:p.otherK,unit:'mEq/kg/hr'});
-  if(result.delivered>.5+1e-12)throw Error('Displayed preparation exceeds the existing 0.5 mEq/kg/hr supplemental-potassium limit. Verify stock volume and pump rate.');
+  if(result.delivered>.5+1e-12){
+   const error=Error('Displayed preparation exceeds the existing 0.5 mEq/kg/hr supplemental-potassium limit. Verify stock volume and pump rate.');
+   error.code='POTASSIUM_DISPLAY_LIMIT';error.preparation=result;error.limit=.5;
+   throw error;
+  }
   return result;
  }
  function phosphate(p,r){

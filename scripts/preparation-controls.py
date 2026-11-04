@@ -34,6 +34,14 @@ for path in (Path(__file__).resolve().parents[1]/'dist').glob('*.html'):
    bottom.add(N('p',[('class','help'),('id','kCustomBottomHelp')],['Same selected rate as the control above. Editing either updates this preparation.']))
   for b in root.all(lambda n:n.cls('rate-pick')):
    if not b.all(lambda n:n.cls('rate-unit')):b.add(N('small',[('class','rate-unit')],['mEq/kg/hr']))
+  for row in range(5):
+   for j,b in enumerate(root.all(lambda n:n.tag=='button' and n.attrs.get('data-row')==str(row))):
+    reason_id=f'kRateReason{row}_{j}'
+    b.attrs['aria-describedby']=reason_id
+    if root.all(lambda n:n.attrs.get('id')==reason_id):continue
+    parent=b.parent;position=parent.children.index(b)
+    option=parent.add(N('div',[('class','k-rate-option')]),position);option.add(b)
+    option.add(N('small',[('id',reason_id),('class','k-rate-unavailable'),('hidden',None)]))
  for field in root.all(lambda n:n.tag=='input' and n.attrs.get('id') in ids and n.attrs.get('type')=='number'):
   id=field.attrs['id']
   if root.all(lambda n:n.attrs.get('data-volume-for')==id):continue

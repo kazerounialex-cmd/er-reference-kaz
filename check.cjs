@@ -43,7 +43,7 @@ function element(value='') {return {value,textContent:'',hidden:false,readOnly:f
 for(const id of ['kPeripheralWarning','kPeripheralHeading','kPeripheralMessage','kWeight','kTarget','kTargetBottom','kRate','kVolume','kStock','kOther','kMethod','kMethodHelp','kAdd','kDiluent','kFinalVolume','kAddedMEq','kConcentration','kHours','kDelivered','kStatus','potassiumForm','kStockDisplay','kChartStatus','kMath','kMathSteps','kStockToggle','kStockEditor','kLockState','kStockHelp','kResults','kSettingsLabel'])elements[id]=element();
 const rates=[[.5],[.3,.4],[.2,.25],[.1,.15],[.05]];
 const buttons=[];
-rates.forEach((rr,i)=>{elements['kEq'+i]=element();elements['kMl'+i]=element();rr.forEach(rate=>{const b=element();b.dataset={rate:String(rate),row:String(i)};buttons.push(b);});});
+rates.forEach((rr,i)=>{elements['kEq'+i]=element();elements['kMl'+i]=element();rr.forEach((rate,j)=>{elements[`kRateReason${i}_${j}`]=element();const b=element();b.dataset={rate:String(rate),row:String(i)};buttons.push(b);});});
 for(const [id,value] of Object.entries({kWeight:'20',kTarget:'',kRate:'50',kVolume:'1000',kStock:'2',kOther:'0',kMethod:'final'}))elements[id].value=value;
 elements.kStock.readOnly=true;elements.kStockEditor.hidden=true;
 const ctx={PreparationCheck:require('./dist/preparation-check.js'),ReferenceNumbers:require('./dist/number-format.js'),document:{getElementById:id=>elements[id],createElement:()=>element(),querySelectorAll:selector=>selector==='.rate-pick'?buttons:buttons.filter(b=>selector===`[data-row="${b.dataset.row}"]`)},calculatePotassium,setTimeout:fn=>fn()};
@@ -143,3 +143,21 @@ buttons.find(b=>b.dataset.rate==='0.3').listeners.click();assert.equal(elements.
 for(const value of ['.6','']){elements.kTargetBottom.value=value;elements.potassiumForm.listeners.input({target:{id:'kTargetBottom',value}});assert.equal(elements.kTarget.value,value);assert.equal(elements.kAdd.textContent,'—');}
 elements.kTarget.value='';elements.kTargetBottom.value='.3';elements.potassiumForm.listeners.reset();assert.equal(elements.kTargetBottom.value,'');
 console.log('Dual potassium custom controls passed: bottom/top edits, chart selection, one-dose calculations, invalid/blank clearing and reset.');
+
+// 12 kg, 44 mL/hr, 500 mL at 0.5: exact stock 34.090909... mL.
+// Displayed 34.1 × 2 / 500 × 44 / 12 = 0.500133333... mEq/kg/hr.
+for(const [id,value]of Object.entries({kWeight:'12',kRate:'44',kVolume:'500',kStock:'2',kOther:'0',kMethod:'final',kTarget:''}))elements[id].value=value;
+vm.runInContext('updatePotassium()',ctx);
+assert.equal(buttons.find(b=>b.dataset.rate==='0.5').disabled,true);
+assert.equal(elements.kRateReason0_0.hidden,false);
+assert.match(elements.kRateReason0_0.textContent,/34.1 mL stock gives 0.500133 mEq\/kg\/hr total/);
+assert.match(elements.kRateReason0_0.textContent,/> 0.5 limit/);
+// At 44.1 mL/hr, rounded stock 34.0 mL delivers 0.4998: allow it.
+elements.kRate.value='44.1';vm.runInContext('updatePotassium()',ctx);assert.equal(buttons.find(b=>b.dataset.rate==='0.5').disabled,false);assert.equal(elements.kRateReason0_0.hidden,true);
+// 55 mL/hr gives rounded stock 27.3 mL and delivery 0.5005: still blocked.
+elements.kRate.value='55';vm.runInContext('updatePotassium()',ctx);assert.equal(buttons.find(b=>b.dataset.rate==='0.5').disabled,true);assert.match(elements.kRateReason0_0.textContent,/0.5005/);
+// At 50 mL/hr, 30 mL stock delivers exactly 0.5: clear the old warning.
+elements.kRate.value='50';vm.runInContext('updatePotassium()',ctx);assert.equal(buttons.find(b=>b.dataset.rate==='0.5').disabled,false);assert.equal(elements.kRateReason0_0.hidden,true);assert.equal(elements.kRateReason0_0.textContent,'');
+elements.kOther.value='.2';vm.runInContext('updatePotassium()',ctx);assert.match(elements.kRateReason4_0.textContent,/Other potassium infusions already exceed/);
+elements.kWeight.value='';vm.runInContext('updatePotassium()',ctx);assert.equal(elements.kRateReason4_0.hidden,true);assert.equal(elements.kRateReason4_0.textContent,'');
+console.log('Disabled potassium reasons passed: rounding above limit, exact-limit re-enabling, concurrent K conflict and stale-reason clearing.');
