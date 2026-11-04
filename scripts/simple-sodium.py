@@ -68,6 +68,15 @@ if not root.all(lambda n:n.attrs.get('id')=='sodiumQuickReference'):
 # Correction time is the main free-water result; D5W quantities are secondary.
 h['heading'](root.byid('nGoal').parent.parent,'Free water deficit')
 h['heading'](root.byid('nWaterSection'),'Free water deficit')
+# Keep each fixed-final-volume recipe readable as one addition instruction.
+if not root.all(lambda n:n.attrs.get('id')=='nCardStockName0'):
+ for i in range(3):
+  label=root.byid('nCardStockLabel'+str(i));card=label.parent;index=card.children.index(label)
+  for id in ['nCardStockLabel','nCardMl','nCardCarrier']:
+   root.byid(id+str(i)).remove()
+  recipe=P(f'<p class="sodium-card-recipe"><span id="nCardStockLabel{i}"></span> <strong id="nCardMl{i}">— mL</strong><span class="sodium-card-stock" id="nCardStockName{i}"></span><span class="sodium-card-carrier" id="nCardCarrier{i}">Enter target fluid Na and volume.</span></p>').root.children[0]
+  card.add(recipe,index)
+  card.add(P(f'<p class="sodium-card-final" id="nCardFinal{i}"></p>').root.children[0],index+1)
 # Regenerate the concise add-on table from this source on each pass.
 quick=root.byid('sodiumQuickReference');quick.children=[]
 fragment=P('''<h2>Bolus-fluid preparation · rough reference <a class="sodium-custom-jump" href="#mixingTool">Custom fluid prep ↓</a></h2><form data-electrolyte><label>Base fluid remaining · mL<input id="nBolusVolume" type="number" min="0.001" step="any" value="1000" required aria-describedby="nBolusError"></label></form><table><caption>7.2% NaCl (1232 mEq/L) to ADD · no carrier removal</caption><thead><tr><th scope="col">Base fluid · Na mEq/L</th><th scope="col">≈165 mEq/L</th><th scope="col">≈180 mEq/L</th></tr></thead><tbody><tr><th scope="row">0.9% NaCl · 154</th><td id="nBolus00">10 mL</td><td id="nBolus01">25 mL</td></tr><tr><th scope="row">Plasma-Lyte / Normosol-R · 140</th><td id="nBolus10">23.4 mL</td><td id="nBolus11">38.0 mL</td></tr><tr><th scope="row">LRS · 130</th><td id="nBolus20">32.8 mL</td><td id="nBolus21">47.5 mL</td></tr></tbody></table><p id="nBolusError" class="critical-note" role="status"></p><p class="help"><b>Remember potassium as needed.</b> Use the actual base volume remaining if the bag has already started. Verify the 7.2% stock label. Bolus indication, patient volume and rate remain clinician-selected.</p><div id="nBolusMath" class="quick-reference-math" aria-live="polite"></div>''').root

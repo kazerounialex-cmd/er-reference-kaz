@@ -20,3 +20,5 @@
 .sodium-simple main [tabindex="-1"]:focus-visible{outline:2px solid #246e89;outline-offset:3px}
 
 #sodiumQuickReference>h2{display:flex;align-items:baseline;flex-wrap:wrap;gap:.25rem .7rem}.sodium-custom-jump{font-size:.75rem;font-weight:600;white-space:nowrap;color:var(--accent)}.sodium-custom-jump:focus-visible{outline:3px solid var(--accent);outline-offset:3px}@media print{.sodium-custom-jump{display:none}}
+
+.sodium-simple .fluid-card .sodium-card-recipe{font-size:.9rem;line-height:1.5;margin:.7rem 0}.sodium-simple .sodium-card-recipe>strong{display:inline;font-size:1.75rem;font-weight:850;margin:0}.sodium-card-recipe>[id^="nCardStockLabel"]{font-weight:800}.sodium-card-stock,.sodium-card-carrier{display:block}.sodium-card-carrier{font-weight:600;font-size:.95rem;margin-top:.3rem}.sodium-simple .fluid-card .sodium-card-final{font-size:.75rem;border-top:1px solid var(--line);padding-top:.4rem}
