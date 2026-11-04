@@ -10,7 +10,7 @@
   if(window.matchMedia('(max-width: 960px)').matches)document.getElementById('sectionMenu').open=false;
   requestAnimationFrame(()=>{target.setAttribute('tabindex','-1');target.scrollIntoView({block:'start',behavior:'auto'});target.focus({preventScroll:true});});
  }
- document.querySelectorAll('[data-sodium-jump]').forEach(link=>link.addEventListener('click',()=>revealSection(link)));
+ document.querySelectorAll('[data-sodium-jump], .sodium-custom-jump').forEach(link=>link.addEventListener('click',()=>revealSection(link)));
  if(location.hash){const link=Array.from(document.querySelectorAll('[data-sodium-jump]')).find(link=>link.hash===location.hash);if(link)revealSection(link);}
  const key='er-reference-sodium-notes-v1',generationKey='er-reference-patient-generation-v1';
  const gen=()=>{try{return sessionStorage.getItem(generationKey)||'';}catch{return '';}};

@@ -18,3 +18,5 @@
 @media print{.sodium-preparation-row{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.sodium-preparation-row .fluid-card-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.sodium-shared-math{break-before:auto}.sodium-shared-math .worked-math{break-inside:avoid}.sodium-bag-summary{break-inside:avoid}}
 @media(min-width:1100px){.sodium-simple .sodium-mix-workspace>form>.patient-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .sodium-simple main [tabindex="-1"]:focus-visible{outline:2px solid #246e89;outline-offset:3px}
+
+#sodiumQuickReference>h2{display:flex;align-items:baseline;flex-wrap:wrap;gap:.25rem .7rem}.sodium-custom-jump{font-size:.75rem;font-weight:600;white-space:nowrap;color:var(--accent)}.sodium-custom-jump:focus-visible{outline:3px solid var(--accent);outline-offset:3px}@media print{.sodium-custom-jump{display:none}}
