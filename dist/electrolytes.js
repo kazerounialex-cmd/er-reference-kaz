@@ -7,7 +7,7 @@ function number(id,optional=false){
   const field=e(id);
   if(optional && field.value.trim()==='')return null;
   if(field.value.trim()==='' || !field.checkValidity() || !Number.isFinite(Number(field.value)))throw Error('Complete the inputs with valid numbers.');
-  if(id==='pRate'&&typeof FluidReferenceNumbers!=='undefined')return FluidReferenceNumbers.value(field);
+  if(['pRate','nBagRate'].includes(id)&&typeof FluidReferenceNumbers!=='undefined')return FluidReferenceNumbers.value(field);
   return id==='mHours'&&magnesiumHours?.display===field.value?magnesiumHours.exact:Number(field.value);
 }
 function clearResult(id,message){
@@ -87,19 +87,33 @@ function updateDextrose(){
   });
 }
 function updateSodium(){
+  try{
+    const volume=number('nBolusVolume'),fluids=sodiumBolusReference(volume),saline=[];
+    fluids.forEach((fluid,i)=>fluid.preparations.forEach((r,j)=>{
+      const stock=Number(ReferenceNumbers.volume(r.stockMl)),finalVolume=volume+stock,actual=(volume*fluid.base+stock*1232)/finalVolume;
+      e('nBolus'+i+j).textContent='+'+ml(r.stockMl);if(i===0)saline.push(format(actual));
+    }));
+    const formula=document.createElement('p');formula.textContent='All fluids: added stock = base volume × (target Na − base Na) ÷ (1232 − target Na). Final volume = base volume + stock. Check Na = (base volume × base Na + stock × 1232) ÷ final volume.';
+    const example=document.createElement('p');example.textContent=`Saline keeps the workbook’s rough 10/25 mL per liter: displayed mixtures ≈ ${saline[0]} mEq/L / ${saline[1]} mEq/L. Other rows use the shared add-on formula. This differs from replacing carrier in a specified final volume.`;
+    e('nBolusMath').replaceChildren(formula,example);e('nBolusError').textContent='';
+  }catch(error){for(let i=0;i<3;i++)for(let j=0;j<2;j++)e('nBolus'+i+j).textContent='— mL';e('nBolusMath').replaceChildren();e('nBolusError').textContent=error.message;}
+
+  e('nDailyLimit').disabled=e('nType').value==='acute';
   attempt('nWater',()=>{
-    const p={weight:number('nWeight'),current:number('nCurrent'),target:number('nGoal'),type:e('nType').value,customHours:number('nHours',true)},r=freeWater(p);
-    result('nWater',[['Estimated free-water deficit',format(r.liters*1000,1)+' mL'],['Free-water-only rate estimate',format(r.mlPerHour,2)+' mL/hr'],['Replacement duration',format(r.hours,1)+' hr'],['Planned average Na decrease',format(r.correction,3)+' mEq/L/hr'],['Planned change in first 24 hr',format(r.dayChange,1)+' mEq/L']],[`Free water: 0.6 × ${p.weight} × (${p.current}/${p.target} − 1) = ${format(r.liters,6)} L.`,`Duration: ${p.customHours!==null?'custom '+p.customHours+' hr':`${p.current} − ${p.target} divided by ${p.type==='acute'?1:.5} mEq/L/hr = ${format(r.hours,3)} hr`}.`,r.hours===0?'Current sodium equals the target: no free-water deficit or replacement rate is calculated.':`Rate: ${format(r.liters*1000,6)} mL ÷ ${format(r.hours,3)} hr = ${format(r.mlPerHour,3)} mL/hr.`],'This is a planning estimate, not a prediction of the measured sodium response. Account for other water/solute inputs and losses, and reassess sodium serially.');
+    const p={weight:number('nWeight'),current:number('nCurrent'),target:number('nGoal'),type:e('nType').value,customHours:number('nHours',true),dailyLimit:number('nDailyLimit')},r=sodiumWaterReference(p);
+    result('nWater',[['Estimated correction time',format(r.hours,1)+' hr'],['Estimated free-water deficit · D5W',format(r.liters*1000,1)+' mL'],['D5W rate (estimated)',format(r.mlPerHour,2)+' mL/hr'],['Planned average Na decrease',format(r.correction,3)+' mEq/L/hr'],['Planned change in first 24 hr',format(r.dayChange,1)+' mEq/L']],[`Free water: 0.6 × ${p.weight} × (${p.current}/${p.target} − 1) ≈ ${ReferenceNumbers.format(r.liters,8)} L.`,`Duration: ${p.customHours!==null?'custom '+p.customHours+' hr':p.type==='acute'?`${p.current} − ${p.target} divided by 1 mEq/L/hr ≈ ${format(r.hours)} hr (existing acute reference).`:`max((${p.current} − ${p.target}) ÷ 0.5, (${p.current} − ${p.target}) × 24 ÷ ${p.dailyLimit}) ≈ ${format(r.hours)} hr`}.`,r.hours===0?'Current sodium equals the target: no free-water deficit or replacement rate is calculated.':`Rate: ${format(r.liters*1000,6)} mL ÷ ${format(r.hours,3)} hr ≈ ${format(r.mlPerHour,3)} mL/hr.`,r.hours===0?'No decline planned: average change 0 mEq/L/hr.':`Average decline: (${p.current} − ${p.target}) ÷ ${format(r.hours)} hr ≈ ${format(r.correction)} mEq/L/hr.`,`First 24 hr: min(${p.current-p.target}, ${ReferenceNumbers.format(r.correction,8)} × 24) ≈ ${format(r.dayChange)} mEq/L.`],(r.dailyWarning?`Caution: custom duration exceeds the selected ${p.dailyLimit} mEq/L per 24-hour chronic ceiling. Increase hours or reassess the plan. `:'')+'D5W-only planning estimate; not a measured-response prediction or a crystalloid rate. Do not automatically add this to the full dehydration deficit or existing fluid plan.');
   });
   const fluids=[{name:'LRS',na:130,k:4},{name:'Plasma-Lyte',na:140,k:5},{name:'0.9% NaCl',na:154,k:0}];
-  const stockLabel=({'1232':'7.2% NaCl','1283':'7.5% NaCl','513':'3% NaCl','0':'Sodium-free replacement'})[e('nPreset').value] || `Custom stock (${e('nStock').value||'—'} mEq/L Na)`;
+  const stockLabel=({'1232':'7.2% NaCl','1283':'7.5% NaCl','513':'3% NaCl','0':'Sodium-free replacement (D5W)'})[e('nPreset').value] || `Custom stock (${e('nStock').value||'—'} mEq/L Na)`;
   fluids.forEach((fluid,i)=>{
     e('nCardStockLabel'+i).textContent=`${stockLabel} TO ADD TO ${fluid.name}`;
     try{
       const r=mixFinal({volume:number('nVolume'),target:number('nFluidGoal'),base:fluid.na,stock:number('nStock')});
       const verified=PreparationCheck.mixture({stockVolume:r.additive,stock:number('nStock'),base:fluid.na,volume:number('nVolume'),target:number('nFluidGoal'),unit:'mEq/L Na'});
       e('nCardMl'+i).textContent=ml(r.additive);e('nCardCarrier'+i).textContent='Carrier retained: '+ml(r.carrier);
-      e('nCardNote'+i).textContent=`Add ${ml(r.additive)} of ${stockLabel} to the retained ${fluid.name}. Dilute to the stated final volume; retained carrier volume is approximate. Displayed preparation Na: ${format(verified.concentration)} mEq/L. ${verified.note} Carrier-only K after mixing: ${format(fluid.k*r.carrier/r.finalVolume,2)} mEq/L.`;
+      const instruction=Number(e('nStock').value)===fluid.na?'Use carrier only.':`Replace carrier with the shown mL of ${stockLabel}.`;
+      e('nCardNote'+i).textContent=`${instruction} Mixture Na ≈ ${PreparationCheck.concentration(verified.concentration)} mEq/L; native K ≈ ${format(fluid.k*r.carrier/r.finalVolume)} mEq/L.${verified.changed?' Caution: stock volume is rounded.':''}`;
+
       document.querySelector(`[data-base="${fluid.na}"]`).disabled=false;
     }catch(error){e('nCardMl'+i).textContent='Not achievable';e('nCardCarrier'+i).textContent='Carrier: — mL';e('nCardNote'+i).textContent=error.message;document.querySelector(`[data-base="${fluid.na}"]`).disabled=true;}
     document.querySelector(`[data-base="${fluid.na}"]`).setAttribute('aria-pressed',String(e('nBase').value===String(fluid.na)));
@@ -110,9 +124,26 @@ function updateSodium(){
     const p={volume:number('nVolume'),target:number('nFluidGoal'),base:number('nBase'),stock:number('nStock')},r=mixFinal(p);
     const verified=PreparationCheck.mixture({stockVolume:r.additive,...p,unit:'mEq/L Na'});
     e('hFluidNa').value=String(r.verified);e('nSelectedFluid').textContent=`Selected: ${e('nFluidName').value}. Prepared fluid Na: ${format(r.verified,1)} mEq/L.`;
-    result('nMix',[[stockLabel+' TO ADD',ml(r.additive)],['Base fluid selected',e('nFluidName').value],['Carrier volume (approx.)',ml(verified.diluent)],['Final prepared volume',ml(verified.volume)],['Verified displayed FLUID sodium',format(verified.concentration)+' mEq/L']],[p.base===p.stock?'Carrier and stock equal the requested concentration; use carrier only.':`Stock replacement: ${p.volume} × (${p.target} − ${p.base}) ÷ (${p.stock} − ${p.base}) = ${format(r.additive,6)} mL.`,`Carrier: ${p.volume} − ${format(r.additive,6)} = ${format(r.carrier,6)} mL.`,`Verification: (${format(r.additive,6)} × ${p.stock} + ${format(r.carrier,6)} × ${p.base}) ÷ ${p.volume} = ${format(r.verified)} mEq/L.`],'Dilute to the final volume; carrier volume is approximate. Sodium-response estimates use the unrounded nominal prescribed mixture; verify any displayed-mixture difference before using that estimate. '+verified.note);
+    result('nMix',[[stockLabel+' TO ADD',ml(r.additive)],['Base fluid selected',e('nFluidName').value],['Carrier volume (approx.)',ml(verified.diluent)],['Final prepared volume',ml(verified.volume)],['Verified displayed FLUID sodium',format(verified.concentration)+' mEq/L']],[p.base===p.stock?'Carrier and stock equal the requested concentration; use carrier only.':`Stock before display rounding: ${p.volume} × (${p.target} − ${p.base}) ÷ (${p.stock} − ${p.base}) ≈ ${ReferenceNumbers.format(r.additive,8)} mL.`,`Displayed preparation: ${verified.volume} − ${verified.drug} = ${ReferenceNumbers.format(verified.diluent,8)} mL carrier.`,`Displayed-mixture check: (${verified.drug} × ${p.stock} + ${ReferenceNumbers.format(verified.diluent,8)} × ${p.base}) ÷ ${verified.volume} ≈ ${PreparationCheck.concentration(verified.concentration)} mEq/L.`],'Replace equal carrier volume, keeping the specified final volume. Response estimates use the unrounded nominal target; verify the displayed mixture first.'+(verified.changed?' Caution: stock volume is rounded; see the concentration check below.':''));
   });
   if(e('hFluidNa').value==='')e('nSelectedFluid').textContent='No valid fluid mixture selected.';
+  attempt('nBag',()=>{
+    if(e('nBagRate').value.trim()==='')throw Error('Enter a shared or local bag rate in mL/hr.');
+    const volume=Number(ReferenceNumbers.volume(number('nVolume'))),rate=number('nBagRate'),bag=sodiumBagReference({volume,rate});
+    const rows=[['Estimated bag duration',format(bag.hours)+' hr']],steps=[`${volume} mL final volume ÷ ${ReferenceNumbers.format(rate,8)} mL/hr ≈ ${format(bag.hours)} hr.`];
+    let note='Local rate affects this reference only; the shared fluid plan is unchanged.';
+    if(!e('hyperWorkflow').hidden&&e('nType').value==='chronic'){
+      try{
+        const current=number('nCurrent'),target=number('nGoal'),dailyLimit=number('nDailyLimit'),r=sodiumBagReference({volume,rate,current,target,dailyLimit});
+        rows.push(['Planned Na at 0.5 mEq/L/hr',format(r.plannedNa)+' mEq/L']);
+        steps.push(`max(patient target ${target}, ${current} − 0.5 × ${ReferenceNumbers.format(bag.hours,8)} hr) ≈ ${format(r.plannedNa)} mEq/L.`);
+        note+=' This is a time-based planned target, not a predicted response to the selected fluid.';
+        if(r.dailyWarning)note+=` Caution: this 0.5 mEq/L/hr schedule exceeds the selected ${dailyLimit} mEq/L per 24-hour ceiling. Reassess the correction rate and monitoring.`;
+      }catch(error){rows.push(['Planned Na unavailable',error.message]);}
+    }else note+=' The falling-Na 0.5 reference is not applied to low sodium or confirmed acute cases.';
+    result('nBag',rows,steps,note);
+  });
+
   attempt('hResponse',()=>{
     const p={weight:number('nWeight'),patientNa:number('nCurrent'),fluidNa:number('hFluidNa'),fluidK:number('hFluidK'),rate:number('hRate'),hours:number('hHours')},r=sodiumResponse(p);
     let note='Approximate starting-plan estimate only. Recheck measured Na 2–4 hours after starting therapy and adjust; subsequent intervals depend on stability and severity.';
@@ -153,7 +184,7 @@ document.querySelectorAll('form[data-electrolyte]').forEach(form=>{
   form.addEventListener('reset',()=>setTimeout(()=>{form.querySelectorAll('[data-lock]').forEach(button=>lockFields(button,true));updatePage();},0));
 });
 document.querySelectorAll('[data-base]').forEach(button=>button.addEventListener('click',()=>{e('nBase').value=button.dataset.base;e('nFluidName').value=button.dataset.fluid;e('hFluidK').value='';updatePage();if(typeof ReferenceLayout!=='undefined'){ReferenceLayout.reveal('nMixSection','nMixMath');return;}e('nMixMath').open=true;e('nMixSection').scrollIntoView({behavior:referenceScrollBehavior,block:'start'});}));
-document.querySelectorAll('[data-path]').forEach(button=>button.addEventListener('click',()=>{const hypo=button.dataset.path==='hypo';e('hyperWorkflow').hidden=hypo;e('hypoWorkflow').hidden=!hypo;e('hypoPlan').hidden=!hypo;document.querySelectorAll('[data-path]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));}));
+document.querySelectorAll('[data-path]').forEach(button=>button.addEventListener('click',()=>{const hypo=button.dataset.path==='hypo';if(document.body.className?.includes('sodium-simple')){e('nPreset').value=hypo?'0':'1232';e('nStock').value=e('nPreset').value;e('nFluidGoal').value='';e('nBase').value='';e('nFluidName').value='';e('hFluidK').value='';}e('hyperWorkflow').hidden=hypo;e('hypoWorkflow').hidden=!hypo;e('hypoPlan').hidden=!hypo;document.querySelectorAll('[data-path]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));if(document.body.className?.includes('sodium-simple'))updatePage();}));
 for(const id of ['nVolume','nFluidGoal','nStock'])if(e(id))e(id).addEventListener('input',()=>{e('hFluidK').value='';if(id==='nStock')e('nPreset').value='custom';updatePage();});
 if(e('nPreset'))e('nPreset').addEventListener('change',()=>{if(e('nPreset').value!=='custom')e('nStock').value=e('nPreset').value;e('hFluidK').value='';updatePage();});
 if(e('mPump')){

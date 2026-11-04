@@ -27,7 +27,7 @@ function page(kind){
   const form=el('planner');forms.push(form);
   for(const [id,value] of Object.entries({dehydration:'',hours:'24',losses:'0',bolus:'0'})){el(id,value).parent=form;}
  }
- if(['k','p','reglan','drugBag'].includes(kind)){const id=({reglan:'rBagPump',drugBag:'bagRate'})[kind]||kind+'Rate';el(id);el(id+'LinkStatus');el(id+'UseShared');}
+ if(['k','p','reglan','drugBag','sodium'].includes(kind)){const id=({reglan:'rBagPump',drugBag:'bagRate',sodium:'nBagRate'})[kind]||kind+'Rate';el(id);el(id+'LinkStatus');el(id+'UseShared');}
  // Detect accidental linking of separate infusion rates.
  el('mPump','7');el('prepPump','3');
  const ctx={calculate,ReferenceNumbers:require('./dist/number-format.js'),document:{getElementById:id=>ids[id]??null,querySelectorAll:()=>forms,activeElement:null},sessionStorage:{getItem:k=>storage[k]??null,setItem:(k,v)=>storage[k]=v},Event:class{constructor(type){this.type=type;}},window:{addEventListener(t,f){windowEvents[t]=f;}},setTimeout:f=>f()};
@@ -52,7 +52,7 @@ for(const file of fs.readdirSync('dist').filter(f=>f.endsWith('.html'))){const h
 console.log('Shared fluid reference passed: unrounded arithmetic, volume/duration, restored planner inputs, cross-page links, persistent local overrides, relinking, invalid/zero rates, patient changes and clearing; separate infusion rates untouched.');
 
 // Both Reglan fluid-bag controls follow the same exact shared-rate policy.
-for(const [kind,id] of [['reglan','rBagPump'],['drugBag','bagRate']]){
+for(const [kind,id] of [['reglan','rBagPump'],['drugBag','bagRate'],['sodium','nBagRate']]){
  const planner=page('planner');planner.input('dehydration',8);planner.input('hours',12);planner.input('bolus',400);planner.input('losses',5);
  const bag=page(kind);assert.equal(bag.exact(id),expected);assert.equal(bag.ids[id+'LinkStatus'].textContent,'From Fluid Planner');
  bag.input('sharedFluidRate','40');assert.equal(bag.ids[id].value,'40.0');assert.equal(bag.ids[id+'LinkStatus'].textContent,'Shared manual rate');

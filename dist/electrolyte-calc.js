@@ -69,3 +69,37 @@ function sodiumResponse({weight,patientNa,fluidNa,fluidK,rate,hours}) {
   return safeResult({perLiter,volume,change:perLiter*volume,hourly:perLiter*rate/1000,dayChange:perLiter*rate*24/1000,predicted:patientNa+perLiter*volume});
 }
 if(typeof module!=='undefined')module.exports={mixFinal,mixVolumes,magnesium,phosphate,freeWater,correctedSodium,magnesiumContext,sodiumResponse};
+
+// The standalone sodium reference includes the owner-approved chronic daily ceiling.
+// Legacy workbook freeWater arithmetic remains unchanged for the Original Sheet.
+function sodiumWaterReference(p){
+ const dailyLimit=p.dailyLimit===undefined?12:p.dailyLimit;
+ if(![10,11,12].includes(dailyLimit))throw Error('Select 10, 11 or 12 mEq/L per 24 hours.');
+ const chosen=p.customHours;
+ const defaultHours=p.type==='chronic'?Math.max((p.current-p.target)/.5,(p.current-p.target)*24/dailyLimit):null;
+ const r=freeWater({...p,customHours:chosen??(defaultHours||null)});
+ return {...r,dailyLimit,dailyWarning:p.type==='chronic'&&r.dayChange>dailyLimit+1e-12};
+}
+if(typeof module!=='undefined')module.exports.sodiumWaterReference=sodiumWaterReference;
+
+// Add-on reference: stock goes into the existing base volume, without removal.
+function sodiumBolusReference(volume){
+ checkNumbers({volume});if(volume<=0)throw Error('Enter a positive base-fluid volume remaining.');
+ return [{name:'0.9% NaCl',base:154},{name:'Plasma-Lyte / Normosol-R',base:140},{name:'LRS',base:130}].map(fluid=>({...fluid,preparations:[165,180].map(target=>{
+  // Retain the workbook's rough saline 10/25 mL-per-liter examples.
+  const stockMl=fluid.base===154?volume*(target===165?.01:.025):volume*(target-fluid.base)/(1232-target);
+  const finalVolume=volume+stockMl,fluidNa=(volume*fluid.base+stockMl*1232)/finalVolume;
+  if(stockMl<=0)throw Error('Stock volume is below supported numeric precision.');
+  return safeResult({target,stockMl,finalVolume,fluidNa});
+ })}));
+}
+function sodiumBagReference({volume,rate,current=null,target=null,dailyLimit=12}){
+ checkNumbers({volume,rate});if(volume<=0||rate<=0)throw Error('Enter a positive final volume and bag rate.');
+ const hours=volume/rate;if(!Number.isFinite(hours)||hours<=0)throw Error('Bag duration is outside supported numeric limits.');
+ if(current===null&&target===null)return {hours,plannedNa:null};
+ checkNumbers({current,target});if(current<=0||target<=0||target>current)throw Error('Use a positive patient target at or below measured sodium for the falling-Na reference.');
+ if(![10,11,12].includes(dailyLimit))throw Error('Select a valid daily ceiling.');
+ const decline=Math.min(current-target,.5*hours),plannedNa=current-decline,dayChange=Math.min(current-target,.5*Math.min(hours,24));
+ return {...safeResult({hours,decline,plannedNa,dayChange}),dailyWarning:dayChange>dailyLimit+1e-12};
+}
+if(typeof module!=='undefined')Object.assign(module.exports,{sodiumBolusReference,sodiumBagReference});
