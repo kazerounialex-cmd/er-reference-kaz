@@ -45,3 +45,6 @@ assert.equal(sodiumBagReference({volume:1000,rate:40,current:180,target:158,dail
 near(sodiumBagReference({volume:1000,rate:50,current:160,target:158}).plannedNa,158);
 assert.equal(sodiumBagReference({volume:1000,rate:50}).plannedNa,null);
 for(const change of [{volume:0},{rate:0},{rate:NaN},{volume:1e308,rate:1e-100},{current:160,target:180}])assert.throws(()=>sodiumBagReference({volume:500,rate:50,current:180,target:158,...change}));
+
+assert(html.includes('class="sodium-preparation-row"'));assert(html.includes('id="nSharedFluidMath"'));
+assert.equal((html.match(/data-sodium-jump/g)||[]).length,9);

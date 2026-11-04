@@ -88,13 +88,14 @@ function updateDextrose(){
 }
 function updateSodium(){
   try{
-    const volume=number('nBolusVolume'),fluids=sodiumBolusReference(volume),math=[];
+    const volume=number('nBolusVolume'),fluids=sodiumBolusReference(volume),saline=[];
     fluids.forEach((fluid,i)=>fluid.preparations.forEach((r,j)=>{
       const stock=Number(ReferenceNumbers.volume(r.stockMl)),finalVolume=volume+stock,actual=(volume*fluid.base+stock*1232)/finalVolume;
-      e('nBolus'+i+j).textContent='+'+ml(r.stockMl);
-      const formula=fluid.base===154?`(${volume} × 154 + ${stock} × 1232) ÷ ${ReferenceNumbers.format(finalVolume,8)} ≈ ${format(actual)} mEq/L`:`${volume} × (${r.target} − ${fluid.base}) ÷ (1232 − ${r.target}) ≈ ${format(r.stockMl)} mL; final ${ReferenceNumbers.format(finalVolume,8)} mL, Na ≈ ${format(actual)} mEq/L`;
-      const p=document.createElement('p');p.textContent=`${fluid.name} → ≈${r.target}: ${formula}`;math.push(p);
-    }));e('nBolusMath').replaceChildren(...math);e('nBolusError').textContent='';
+      e('nBolus'+i+j).textContent='+'+ml(r.stockMl);if(i===0)saline.push(format(actual));
+    }));
+    const formula=document.createElement('p');formula.textContent='All fluids: added stock = base volume × (target Na − base Na) ÷ (1232 − target Na). Final volume = base volume + stock. Check Na = (base volume × base Na + stock × 1232) ÷ final volume.';
+    const example=document.createElement('p');example.textContent=`Saline keeps the workbook’s rough 10/25 mL per liter: displayed mixtures ≈ ${saline[0]} mEq/L / ${saline[1]} mEq/L. Other rows use the shared add-on formula. This differs from replacing carrier in a specified final volume.`;
+    e('nBolusMath').replaceChildren(formula,example);e('nBolusError').textContent='';
   }catch(error){for(let i=0;i<3;i++)for(let j=0;j<2;j++)e('nBolus'+i+j).textContent='— mL';e('nBolusMath').replaceChildren();e('nBolusError').textContent=error.message;}
 
   e('nDailyLimit').disabled=e('nType').value==='acute';
@@ -110,8 +111,9 @@ function updateSodium(){
       const r=mixFinal({volume:number('nVolume'),target:number('nFluidGoal'),base:fluid.na,stock:number('nStock')});
       const verified=PreparationCheck.mixture({stockVolume:r.additive,stock:number('nStock'),base:fluid.na,volume:number('nVolume'),target:number('nFluidGoal'),unit:'mEq/L Na'});
       e('nCardMl'+i).textContent=ml(r.additive);e('nCardCarrier'+i).textContent='Carrier retained: '+ml(r.carrier);
-      const math=Number(e('nStock').value)===fluid.na?'Carrier and stock match the target: use carrier only.':`Math: ${e('nVolume').value} × (${e('nFluidGoal').value} − ${fluid.na}) ÷ (${e('nStock').value} − ${fluid.na}) ≈ ${format(r.additive)} mL stock.`;
-      e('nCardNote'+i).textContent=`${math} Remove ${ml(r.additive)} carrier; replace with ${ml(r.additive)} of ${stockLabel}. Final volume ${ml(verified.volume)}. Displayed-mixture Na ≈ ${PreparationCheck.concentration(verified.concentration)} mEq/L${verified.changed?' · Caution: rounded stock differs from target.':''} Carrier-only K ≈ ${format(fluid.k*r.carrier/r.finalVolume)} mEq/L.`;
+      const instruction=Number(e('nStock').value)===fluid.na?'Use carrier only.':`Replace carrier with the shown mL of ${stockLabel}.`;
+      e('nCardNote'+i).textContent=`${instruction} Mixture Na ≈ ${PreparationCheck.concentration(verified.concentration)} mEq/L; native K ≈ ${format(fluid.k*r.carrier/r.finalVolume)} mEq/L.${verified.changed?' Caution: stock volume is rounded.':''}`;
+
       document.querySelector(`[data-base="${fluid.na}"]`).disabled=false;
     }catch(error){e('nCardMl'+i).textContent='Not achievable';e('nCardCarrier'+i).textContent='Carrier: — mL';e('nCardNote'+i).textContent=error.message;document.querySelector(`[data-base="${fluid.na}"]`).disabled=true;}
     document.querySelector(`[data-base="${fluid.na}"]`).setAttribute('aria-pressed',String(e('nBase').value===String(fluid.na)));
@@ -128,7 +130,7 @@ function updateSodium(){
   attempt('nBag',()=>{
     if(e('nBagRate').value.trim()==='')throw Error('Enter a shared or local bag rate in mL/hr.');
     const volume=Number(ReferenceNumbers.volume(number('nVolume'))),rate=number('nBagRate'),bag=sodiumBagReference({volume,rate});
-    const rows=[['Estimated bag duration',format(bag.hours)+' hr'],['Bag rate used',format(rate)+' mL/hr']],steps=[`${volume} mL final volume ÷ ${ReferenceNumbers.format(rate,8)} mL/hr ≈ ${format(bag.hours)} hr.`];
+    const rows=[['Estimated bag duration',format(bag.hours)+' hr']],steps=[`${volume} mL final volume ÷ ${ReferenceNumbers.format(rate,8)} mL/hr ≈ ${format(bag.hours)} hr.`];
     let note='Local rate affects this reference only; the shared fluid plan is unchanged.';
     if(!e('hyperWorkflow').hidden&&e('nType').value==='chronic'){
       try{

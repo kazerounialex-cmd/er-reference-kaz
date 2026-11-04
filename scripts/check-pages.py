@@ -17,13 +17,19 @@ class Page(HTMLParser):
             if self.stack[i][0]==tag:self.stack=self.stack[:i];break
 pages={path.name:Page(path.read_text()) for path in DIST.glob('*.html')}
 def nav_links(page):
-    return [data.get('href') for tag,data,parents in page.nodes if tag=='a' and any(t=='nav' and d.get('aria-label')=='Reference sections' for t,d in parents)]
+    return [data.get('href') for tag,data,parents in page.nodes if tag=='a' and 'data-sodium-jump' not in data and any(t=='nav' and d.get('aria-label')=='Reference sections' for t,d in parents)]
 expected_nav=['index.html','potassium.html','magnesium.html','phosphate.html','sodium.html','dextrose.html','blood-collection.html','cri-fentanyl.html','cri-lidocaine.html','cri-ketamine.html','cri-norepinephrine.html','cri-insulin.html','cri-reglan.html','chocolate.html','drugs.html','original-sheet.html','sources.html']
 errors=[]
 for name,page in pages.items():
     if nav_links(page)!=expected_nav:errors.append(name+': reference navigation differs from the required order')
     current=[data for tag,data,parents in page.nodes if tag=='a' and data.get('aria-current')=='page' and any(t=='nav' and d.get('aria-label')=='Reference sections' for t,d in parents)]
     if len(current)!=1 or current[0].get('href')!=name:errors.append(name+': navigation must mark only its own page as current')
+    # Section anchors supplement, rather than replace, the required page navigation.
+    jumps=[data for tag,data,parents in page.nodes if tag=='a' and 'data-sodium-jump' in data]
+    expected_jumps=['#sodiumPatientTop','#hyperWorkflow','#mixingTool','#nSharedFluidMath','#sodiumGlucose','#sodiumQuickMath','#sodiumGuidance','#sodiumTracker','#sodiumSources']
+    if name=='sodium.html':
+        if [d.get('href') for d in jumps]!=expected_jumps:errors.append(name+': sodium section jumps differ from the required order')
+    elif jumps:errors.append(name+': unexpected sodium-only section navigation')
     ids=Counter(data['id'] for _,data,_ in page.nodes if 'id' in data)
     labels={data['for'] for tag,data,_ in page.nodes if tag=='label' and 'for' in data}
     issues=['duplicate ID '+key for key,count in ids.items() if count>1]

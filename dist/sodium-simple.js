@@ -1,6 +1,17 @@
 // Optional sample notes. Deliberately independent of reference calculations and fluid state.
 (()=>{
  const $=id=>document.getElementById(id);if(!$('sodiumTracker'))return;
+
+ // Native hash links reveal their section without clearing an already active pathway.
+ function revealSection(link){
+  const target=document.getElementById(link.hash.slice(1));if(!target)return;
+  if(target.id==='hyperWorkflow'&&target.hidden)document.querySelector('[data-path="hyper"]').click();
+  for(let node=target;node;node=node.parentElement)if(node.tagName==='DETAILS')node.open=true;
+  if(window.matchMedia('(max-width: 960px)').matches)document.getElementById('sectionMenu').open=false;
+  requestAnimationFrame(()=>{target.setAttribute('tabindex','-1');target.scrollIntoView({block:'start',behavior:'auto'});target.focus({preventScroll:true});});
+ }
+ document.querySelectorAll('[data-sodium-jump]').forEach(link=>link.addEventListener('click',()=>revealSection(link)));
+ if(location.hash){const link=Array.from(document.querySelectorAll('[data-sodium-jump]')).find(link=>link.hash===location.hash);if(link)revealSection(link);}
  const key='er-reference-sodium-notes-v1',generationKey='er-reference-patient-generation-v1';
  const gen=()=>{try{return sessionStorage.getItem(generationKey)||'';}catch{return '';}};
  let generation=gen(),samples=[];

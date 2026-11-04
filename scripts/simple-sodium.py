@@ -74,4 +74,28 @@ if not root.all(lambda n:n.attrs.get('id')=='nBagRate'):
  summary=P('''<section class="sodium-bag-summary" id="nBagSection"><h3>Bag time & planned sodium</h3><div id="nBag" aria-live="polite"></div><section id="nBagMath" class="worked-math"><h3>Bag math · 0.5 mEq/L/hr reference</h3><ol id="nBagSteps"></ol></section></section>''').root.children[0]
  grid.parent.add(summary,grid.parent.children.index(grid)+1)
 root.byid('nBagMath').one(lambda n:n.tag=='h3').children=['Bag math']
+# Two rows: compact inputs/time above; fluid choices beside the selected recipe below.
+if not root.all(lambda n:n.cls('sodium-preparation-row')):
+ form=root.byid('nVolume').parent.parent.parent
+ cards=root.byid('mixingTool').one(lambda n:n.cls('fluid-card-grid'))
+ pos=form.children.index(cards);cards.remove();selected=root.byid('nMixSection');selected.remove()
+ row=N('div',[('class','sodium-preparation-row')]);row.add(cards);row.add(selected);form.add(row,pos)
+ math=root.byid('nMixMath');math.remove();bagmath=root.byid('nBagMath');bagmath.remove()
+ shared=N('section',[('id','nSharedFluidMath'),('class','sodium-shared-math worked-math')])
+ shared.add(N('h3',children=['Preparation math · all base fluids']))
+ shared.add(P('''<p>For a specified final volume: <b>stock mL = final mL × (target fluid Na − base Na) ÷ (stock Na − base Na)</b>. Remove that much carrier and replace it with stock. Carrier mL = final mL − stock mL. Verify fluid Na = (stock mL × stock Na + carrier mL × base Na) ÷ final mL. If base and stock already equal the target, use carrier only.</p>''').root.children[0])
+ math.one(lambda n:n.tag=='h3').children=['Selected fluid · substituted example'];shared.add(math);shared.add(bagmath);form.add(shared)
+# Stable anchors for every main section, including optional disclosures.
+root.one(lambda n:n.cls('simple-sodium-top')).attrs['id']='sodiumPatientTop'
+for id,anchor in [('nGlucoseSection','sodiumGlucose'),('nQuickSection','sodiumQuickMath')]:
+ node=root.byid(id)
+ while node.tag!='details':node=node.parent
+ node.attrs['id']=anchor
+root.one(lambda n:n.cls('sodium-reference-source')).attrs['id']='sodiumSources'
+for old in list(root.all(lambda n:n.attrs.get('id')=='sodiumSectionLinks')):old.remove()
+links=[('sodiumPatientTop','Patient / bolus'),('hyperWorkflow','Free water deficit'),('mixingTool','Fluid preparation'),('nSharedFluidMath','Preparation math'),('sodiumGlucose','Glucose correction'),('sodiumQuickMath','Mixing quick math'),('sodiumGuidance','Guidance / response'),('sodiumTracker','Tracker'),('sodiumSources','Sources')]
+menu=N('div',[('id','sodiumSectionLinks'),('class','sodium-section-links'),('role','group'),('aria-label','Sodium sections')])
+for anchor,label in links:menu.add(N('a',[('href','#'+anchor),('data-sodium-jump',None)],children=[label]))
+sodium=root.one(lambda n:n.tag=='a' and n.attrs.get('href')=='sodium.html' and n.attrs.get('aria-current')=='page')
+sodium.parent.add(menu,sodium.parent.children.index(sodium)+1)
 p.write_text(root.render())
