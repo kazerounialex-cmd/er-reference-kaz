@@ -9,6 +9,20 @@ if not r.all(lambda n:n.attrs.get('id')=='pKclPanel'):
  old.attrs['hidden']=None
  box=P('''<section class="phosphate-kcl-panel" id="pKclPanel" aria-labelledby="pKclHeading"><h3 id="pKclHeading">Additional potassium from KCl</h3><div class="phosphate-kcl-controls"><label>KCl rate <span>mEq/kg/hr</span><input id="pKclRate" type="number" min="0" step="any" aria-describedby="pKclLinkStatus" placeholder="KCl calculator or manual rate"></label><button type="button" id="pKclUseCalculator">Use KCl calculator</button><a href="potassium.html">Open KCl calculator ↗</a></div><label class="phosphate-kcl-confirm"><input id="pKclActive" type="checkbox"> KCl is running concurrently — include it</label><p id="pKclLinkStatus" class="help" role="status"></p><strong id="pKclTotal" role="status">Total potassium: —</strong><p class="help">Separate infusions only; this does not calculate KCl mixed into the KPhos bag. Only confirmed additional K is counted.</p></section>''').root.children[0]
  inputs=r.one(lambda n:n.cls('compact-inputs'));inputs.add(box,1)
+# Separate the total from entry controls without duplicating calculation state.
+box=r.byid('pKclPanel')
+if not r.all(lambda n:n.attrs.get('id')=='pKclTotalBox'):
+ breakdown=r.byid('pKclTotal');breakdown.remove();breakdown.tag='p';breakdown.attrs.pop('role',None)
+ entry=N('div',[('class','phosphate-kcl-entry')])
+ for child in list(box.children):
+  if isinstance(child,N):entry.add(child)
+  else:box.children.remove(child);entry.add(child)
+ box.add(entry)
+ total=box.add(N('section',[('class','phosphate-total-k'),('id','pKclTotalBox'),('role','status'),('aria-labelledby','pKclTotalHeading')]))
+ total.add(N('h3',[('id','pKclTotalHeading')],['Total K']))
+ total.add(N('strong',[('id','pKclTotalValue')],['—']))
+ total.add(N('span',[('class','phosphate-total-unit')],['mEq/kg/hr']))
+ total.add(breakdown)
 controls=r.one(lambda n:n.cls('phosphate-kcl-controls'))
 if not controls.all(lambda n:n.tag=='a'):
  controls.add(N('a',[('href','potassium.html')],['Open KCl calculator ↗']))

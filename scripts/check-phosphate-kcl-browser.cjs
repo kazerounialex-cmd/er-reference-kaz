@@ -17,7 +17,7 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright');
   assert.equal(await page.locator('#pKclActive').isChecked(),false);await prep();
   // KPhos 2 mL × 4.4 mEq/mL / 1000 × 50 / 10 = 0.044.
   assert.match(await total(),/KPhos 0.0440 \+ KCl 0.0000 = 0.0440/);
-  await page.locator('#pKclActive').check();assert.match(await total(),/= 0.1440/);
+  await page.locator('#pKclActive').check();assert.match(await total(),/= 0.1440/);assert.equal(await page.locator('#pKclTotalValue').innerText(),'0.1440');
   await go('drugs');await go('phosphate');assert.equal(await page.locator('#pKclActive').isChecked(),true);await prep();assert.match(await total(),/= 0.1440/);
   await fill('pKclRate',.2);assert.match(await total(),/= 0.2440/);
   await fill('pKclRate',.49);assert.match(await page.locator('#pResult').innerText(),/Invalid/);assert.equal(await total(),'Total potassium: —');await fill('pKclRate',.2);assert.match(await total(),/= 0.2440/);
@@ -37,7 +37,7 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright');
   await go('phosphate');assert.equal(Number(await page.locator('#pKclRate').inputValue()),.2);assert.equal(await page.locator('#pKclActive').isChecked(),false);await prep();
   await page.locator('#pKclActive').check();assert.match(await total(),/= 0.2440/);
   await go('potassium');await fill('kTarget','');await go('phosphate');await prep();
-  assert.equal(await page.locator('#pOtherK').inputValue(),'');assert.match(await page.locator('#pResult').innerText(),/Invalid/);
+  assert.equal(await page.locator('#pOtherK').inputValue(),'');assert.match(await page.locator('#pResult').innerText(),/Invalid/);assert.equal(await page.locator('#pKclTotalValue').innerText(),'—');
   await page.locator('#pKclActive').uncheck();assert.match(await total(),/= 0.0440/);
   await fill('pKclRate',.12);await page.locator('#pKclActive').check();assert.match(await total(),/= 0.1640/);
   await page.setViewportSize({width:390,height:950});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);

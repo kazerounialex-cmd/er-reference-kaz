@@ -66,12 +66,14 @@ function updateMagnesium(){
 }
 function updatePhosphate(){
   if(e('pKclTotal'))e('pKclTotal').textContent='Total potassium: —';
+  if(e('pKclTotalValue'))e('pKclTotalValue').textContent='—';
   for(const id of ['pKRateHero','pKHourlyHero','pKAmountHero'])e(id).textContent='—';
   e('pKHeroStatus').textContent='Choose a valid phosphate rate to show its potassium contribution.';
   const run=dose=>{const p={weight:number('pWeight'),fluidRate:number('pRate'),volume:number('pVolume'),phosStock:number('pStock'),kStock:number('pKStock'),otherK:number('pOtherK'),method:e('pMethod').value,dose};const r=phosphate(p);return {...r,verification:PreparationCheck.phosphate(p,r)};};
   chart([[.01,.02],[.03,.06],[.06,.12]],run,(i,values)=>{e('pK'+i).textContent=values.map(v=>v?format(v.verification.potassiumRate):'—').join(' – ');e('pMl'+i).textContent=values.map(v=>v?ml(v.additive):'— mL').join(' – ');},'pDose');
   attempt('pResult',()=>{
     const dose=number('pDose'),r=run(dose),weight=number('pWeight'),flow=number('pRate'),stock=number('pStock'),k=number('pKStock'),volume=number('pVolume'),other=number('pOtherK'),c=dose*weight/flow,verified=r.verification;
+    if(e('pKclTotalValue'))e('pKclTotalValue').textContent=verified.totalK.toFixed(4);
     if(e('pKclTotal'))e('pKclTotal').textContent=`KPhos ${verified.potassiumRate.toFixed(4)} + KCl ${other.toFixed(4)} = ${verified.totalK.toFixed(4)} mEq/kg/hr`;
     e('pKRateHero').textContent=format(verified.potassiumRate);e('pKHourlyHero').textContent=format(verified.potassiumRate*weight);e('pKAmountHero').textContent=format(verified.potassiumAmount,1);
     e('pKHeroStatus').textContent=`Selected phosphate rate: ${dose} mmol/kg/hr. Combined entered supplemental K, including separate infusions: ${format(verified.totalK)} mEq/kg/hr.`;
