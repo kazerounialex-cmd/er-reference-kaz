@@ -28,6 +28,9 @@ if not r.all(lambda n:n.attrs.get('id')=='mPrimaryStatus'):
 for notes in main.all(lambda n:n.cls('compact-dose-notes')):
  for paragraph in list(notes.all(lambda n:n.tag=='p')):paragraph.remove()
  notes.add(N('p',children=['Doses are mEq/kg/day, not mg/kg/day. The clinician selected 1.0 as the usual reference and 0.5 for azotemic patients. Amount = daily dose × kg × preparation hours/24: a 12-hour preparation contains half the daily amount. Total Mg context does not automatically select a dose.']))
+if not r.all(lambda n:n.attrs.get('id')=='mTimingControls'):
+ controls=P('<div id="mTimingControls" class="grid"><label>Run diluted preparation at <span>mL/hr</span><input id="mResultPump" type="number" min=".001" step="any"></label><label>Preparation duration <span>hr</span><input id="mResultHours" type="number" min=".001" step="any"></label></div>').root.children[0]
+ section=r.byid('mResultSection');section.add(controls,1)
 p.write_text(r.render())
 k=ROOT/'dist/potassium.html';root=P(k.read_text()).root
 if not root.all(lambda n:n.attrs.get('id')=='kMagnesiumReference'):

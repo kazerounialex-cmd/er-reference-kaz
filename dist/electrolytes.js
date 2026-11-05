@@ -37,11 +37,12 @@ function chart(rates,run,render,targetId){
 function syncMagnesiumPump(){
   if(!e('mPump'))return;
   try{const hours=number('mHours'),volume=number('mVolume');
-    e('mPump').value=hours>0&&volume>0?ReferenceNumbers.display(volume/hours):'';
+    if(document.activeElement!==e('mPump'))e('mPump').value=hours>0&&volume>0?ReferenceNumbers.display(volume/hours):'';
   }catch{e('mPump').value='';}
 }
 function updateMagnesium(){
   syncMagnesiumPump();
+  for(const [mirror,source] of [['mResultPump','mPump'],['mResultHours','mHours']])if(e(mirror)&&document.activeElement!==e(mirror))e(mirror).value=e(source).value;
   let context=null, contextError='';
   try{
     const lower=number('mLower'),upper=number('mUpper');
@@ -213,4 +214,8 @@ if(e('mPump')){
   e('mHours').addEventListener('input',()=>{magnesiumHours=null;});
   e('mHours').form?.addEventListener('reset',()=>{magnesiumHours=null;});
 }
+// Persistent result controls mirror the preparation inputs without rebuilding focus.
+for(const [mirror,source] of [['mResultPump','mPump'],['mResultHours','mHours']])if(e(mirror))e(mirror).addEventListener('input',()=>{
+ e(source).value=e(mirror).value;e(source).dispatchEvent(new Event('input',{bubbles:true}));
+});
 updatePage();

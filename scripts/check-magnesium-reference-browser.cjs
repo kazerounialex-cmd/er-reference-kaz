@@ -11,6 +11,11 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright');
  await azotemic.click();assert.equal(await page.locator('#mResult .primary-output b').innerText(),'1.0 mL');
  await fill('mHours',12);assert.equal(await page.locator('#mResult .primary-output b').innerText(),'0.50 mL');
  await usual.click();assert.equal(await page.locator('#mResult .primary-output b').innerText(),'1.0 mL');
+ // 24 mL at 2 mL/hr lasts 12 hr; 8 kg at 1 mEq/kg/day needs 1 mL of 4 mEq/mL additive.
+ await fill('mResultPump',2);assert.equal(await page.locator('#mHours').inputValue(),'12.0');assert.equal(await page.locator('#mResult .primary-output b').innerText(),'1.0 mL');
+ await fill('mResultHours',24);assert.equal(await page.locator('#mPump').inputValue(),'1.0');assert.equal(await page.locator('#mResultPump').inputValue(),'1.0');
+ await fill('mResultPump','');assert.match(await page.locator('#mResult').innerText(),/Invalid/);assert.equal(await page.locator('#mResultHours').inputValue(),'');
+ await fill('mResultHours',24);assert.equal(await page.locator('#mResult .primary-output b').innerText(),'2.0 mL');
  await context.locator(':scope > summary').click();await fill('mBloodwork',2);await page.locator('#mRefractory').selectOption('yes');assert.equal(await page.locator('#mDose').inputValue(),'1');assert.match(await page.locator('#mInterpretation').innerText(),/does not establish ionized Mg status/);
  await fill('mBloodwork',3);assert.equal(await usual.isDisabled(),true);assert.equal(await azotemic.isDisabled(),true);assert.equal(await page.locator('#mPrimaryStatus').isVisible(),true);
  await context.locator(':scope > summary').click();assert.equal(await page.locator('#mPrimaryStatus').isVisible(),true);
