@@ -66,6 +66,7 @@ const {chromium}=require('playwright');
  assert.equal(await text('kAdd'),'0.15');assert.equal(await text('kDiluent'),'11.9 mL');
  await page.locator('#includeKcl').check();await page.locator('#allPotassiumSources').check();assert.match(await text('concurrentTotal'),/Combined supplemental K: 0\.10 mEq/);
  await go('phosphate.html');await fill('pVolume',12);await fill('pDose',.03);
+ await page.locator('#concurrentPotassium').evaluate(node=>{if(node.tagName==='DETAILS')node.open=true;});
  await page.locator('#includeKphos').check();await page.locator('#allPotassiumSources').check();
  assert.match(await text('concurrentTotal'),/Combined supplemental K: 0.14 mEq/);
  assert.match(await text('concurrentContributions'),/KCl: 0\.10.*KPhos: 0\.04/);

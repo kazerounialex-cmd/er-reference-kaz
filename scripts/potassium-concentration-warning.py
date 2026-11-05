@@ -21,5 +21,6 @@ if not box.all(lambda n:n.tag=='details'):
  details=box.add(N('details',[('class','k-monitor-sources')]))
  details.add(N('summary',children=['Reference & context']))
  details.add(help)
- help.children[0]='Veterinary concentration recommendations vary; 0.06 mEq/mL is a conservative peripheral irritation reference, not a universal toxicity cutoff. Added KCl only; native carrier potassium is excluded. '
+help=box.one(lambda n:n.tag=='p' and n.cls('help'))
+help.children[0]='Clinician-selected peripheral KCl concentration limit: 0.2 mEq/mL (200 mEq/L). This is separate from the dose-rate limits and is not attributed to the references below. Added KCl only; native carrier potassium is excluded. '
 p.write_text(r.render())

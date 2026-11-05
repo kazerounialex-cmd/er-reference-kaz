@@ -486,3 +486,5 @@ body.blood-compact{background:#f4ecef}.blood-compact .blood-results .metric{bord
 #potassiumForm .k-rate-option{min-width:0;max-width:210px}#potassiumForm .k-rate-unavailable{display:block;font-size:11px;line-height:1.4;font-weight:500;color:#634b22;background:#faf1df;border-left:2px solid #ad7b2a;padding:5px 7px;margin-top:5px;overflow-wrap:anywhere}#potassiumForm .k-rate-unavailable[hidden]{display:none}
 
 #potassiumForm td>.k-rate-unavailable{max-width:340px;text-align:left;margin-top:8px;font-size:11px;white-space:normal}
+
+.phosphate-kcl-panel{grid-column:1/-1;border:2px solid #246d70;background:#edf7f5;border-radius:8px;padding:12px;margin:0 0 12px}.phosphate-kcl-panel h3{margin:0 0 8px}.phosphate-kcl-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.phosphate-kcl-controls label{margin:0;max-width:280px}.phosphate-kcl-controls button{font-size:12px}.phosphate-kcl-confirm{margin:10px 0 6px!important;max-width:none!important}.phosphate-kcl-confirm input{width:auto}.phosphate-kcl-panel .help{margin:5px 0;font-size:12px}.phosphate-kcl-panel>strong{display:block;font-size:15px}#concurrentPotassium>summary{margin-bottom:12px}

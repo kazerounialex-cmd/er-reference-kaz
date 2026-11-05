@@ -86,17 +86,17 @@ elements.clearPatient.dispatchEvent(new ctx.Event('click'));
 assert.equal(elements.kAdd.textContent,'—');assert.ok(buttons.every(b=>b.disabled));assert.equal(elements.kMathSteps.children.length,0);
 console.log('Potassium/shared-patient integration passed: restored weight, live edits, chart updates, clearing and disabled selections.');
 
-// Use unrounded final preparation concentration for peripheral warnings.
-Object.assign(elements.kWeight,{value:'20'});elements.kOther.value='0';elements.kRate.value='50';elements.kVolume.value='1000';elements.kStock.value='2';elements.kMethod.value='final';
-function warningAt(c){elements.kTarget.value=String(c*50/20);vm.runInContext('updatePotassium()',ctx);}
-for(const c of [.039999,.04,.059999]){warningAt(c);assert.equal(elements.kConcentration.attrs['data-monitor'],'false');assert.equal(elements.kPeripheralWarning.hidden,true);assert.equal(elements.kPeripheralMessage.textContent,'');}
-warningAt(.06);assert.equal(elements.kPeripheralWarning.hidden,false);assert.equal(elements.kConcentration.attrs['data-monitor'],'true');assert.equal(elements.kPeripheralHeading.textContent,'Catheter monitoring');assert.equal(elements.kPeripheralWarning.attrs['data-level'],'near');assert.match(elements.kPeripheralMessage.textContent,/Current: 0.06 mEq\/mL/);assert.match(elements.kPeripheralMessage.textContent,/pain, redness, swelling or phlebitis/);assert.doesNotMatch(elements.kPeripheralMessage.textContent,/ABOVE|NEAR|before administration/);
-warningAt(.060001);assert.equal(elements.kPeripheralWarning.attrs['data-level'],'above');
+// Clinician-selected peripheral concentration: below / at / above 0.2 mEq/mL.
+Object.assign(elements.kWeight,{value:'20'});elements.kOther.value='0';elements.kRate.value='40';elements.kVolume.value='1000';elements.kStock.value='2';elements.kMethod.value='final';
+function warningAt(c){elements.kTarget.value=String(c*40/20);vm.runInContext('updatePotassium()',ctx);}
+for(const c of [.039999,.04,.059999,.06,.199999]){warningAt(c);assert.equal(elements.kConcentration.attrs['data-monitor'],'false');assert.equal(elements.kPeripheralWarning.hidden,true);assert.equal(elements.kPeripheralMessage.textContent,'');}
+warningAt(.2);assert.equal(elements.kPeripheralWarning.hidden,false);assert.equal(elements.kConcentration.attrs['data-monitor'],'true');assert.equal(elements.kPeripheralHeading.textContent,'At peripheral KCl limit');assert.equal(elements.kPeripheralWarning.attrs['data-level'],'near');assert.match(elements.kPeripheralMessage.textContent,/Current: 0.20 mEq\/mL/);assert.match(elements.kPeripheralMessage.textContent,/pain, redness, swelling or phlebitis/);assert.doesNotMatch(elements.kPeripheralMessage.textContent,/ABOVE|NEAR|before administration/);
+warningAt(.200001);assert.equal(elements.kPeripheralWarning.attrs['data-level'],'above');assert.equal(elements.kPeripheralHeading.textContent,'Above peripheral KCl limit');
 elements.kMethod.value='add';vm.runInContext('updatePotassium()',ctx);assert.equal(elements.kPeripheralWarning.attrs['data-level'],'above');
 // Potassium delivered separately is not part of this bag's concentration.
-elements.kOther.value='.1';elements.kTarget.value='.15';vm.runInContext('updatePotassium()',ctx);assert.equal(elements.kPeripheralWarning.hidden,true);assert.equal(elements.kConcentration.textContent,'0.02 mEq/mL');
+elements.kOther.value='.1';elements.kTarget.value='.15';vm.runInContext('updatePotassium()',ctx);assert.equal(elements.kPeripheralWarning.hidden,true);assert.equal(elements.kConcentration.textContent,'0.03 mEq/mL');
 elements.kWeight.value='';elements.kWeight.dispatchEvent({type:'input'});assert.equal(elements.kPeripheralWarning.hidden,true);assert.equal(elements.kPeripheralMessage.textContent,'');assert.equal(elements.kConcentration.textContent,'—');
-console.log('Peripheral KCl warnings passed: below/at/above 0.06 mEq/mL, both preparation methods, separate K exclusion and stale-warning clearing.');
+console.log('Peripheral KCl warnings passed: approved 0.2 boundary, both methods, separate-K exclusion and invalid clearing.');
 
 assert.match(fs.readFileSync('dist/potassium.html','utf8'),/id="kPeripheralWarning"[^>]*role="status"/);
 

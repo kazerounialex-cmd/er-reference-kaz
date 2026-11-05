@@ -50,16 +50,16 @@ function renderChart(base){
 function updatePeripheralWarning(concentration=null){
  const box=get('kPeripheralWarning');
  if(!box)return;
- const valid=Number.isFinite(concentration),near=valid&&concentration>=0.06-1e-12;
+ const valid=Number.isFinite(concentration),near=valid&&concentration>=0.2-1e-12;
  box.hidden=!near;
  get('kConcentration').setAttribute('data-monitor',String(near));
  get('kPeripheralHeading').textContent='';get('kPeripheralMessage').textContent='';
  if(!near){box.setAttribute('data-level','');return;}
- const above=concentration>0.06+1e-12;
+ const above=concentration>0.2+1e-12;
  box.setAttribute('data-level',above?'above':'near');
- get('kPeripheralHeading').textContent='Catheter monitoring';
+ get('kPeripheralHeading').textContent=above?'Above peripheral KCl limit':'At peripheral KCl limit';
  const current=ReferenceNumbers.display(concentration);
- get('kPeripheralMessage').textContent=`Current: ${current} mEq/mL · Peripheral reference: 0.06 mEq/mL. Monitor the catheter site for pain, redness, swelling or phlebitis; reassess the catheter and vascular access if irritation develops.`;
+ get('kPeripheralMessage').textContent=`Current: ${current} mEq/mL · Clinician-selected peripheral limit: 0.2 mEq/mL. Monitor the catheter site for pain, redness, swelling or phlebitis; reassess the catheter and vascular access if irritation develops.`;
 }
 function clearSelected(message){
  updatePeripheralWarning();

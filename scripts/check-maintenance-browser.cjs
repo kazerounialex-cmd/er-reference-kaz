@@ -22,6 +22,7 @@ const {chromium}=require('playwright');
  await patient('magnesium.html',4.38);assert.equal(await page.locator('#mHours').inputValue(),'24');await fill('mVolume',24);await fill('mDose',1);assert.match(await text('mResult'),/Caution/);await mobile('magnesium');await fill('mHours','');assert.match(await text('mResult'),/Invalid/);
  await patient('phosphate.html',.5);for(const [id,value] of Object.entries({pRate:10,pVolume:12,pDose:.06}))await fill(id,value);
  assert.equal(await text('pKRateHero'),'0.07');assert.match(await text('pResult'),/0.05 mmol\/kg\/hr/);
+ await page.locator('#concurrentPotassium').evaluate(node=>{if(node.tagName==='DETAILS')node.open=true;});
  await page.locator('#includeKphos').check();await page.locator('#allPotassiumSources').check();assert.match(await text('concurrentTotal'),/0.07 mEq/);await mobile('phosphate');
  await page.locator('[data-lock="pStock,pKStock"]').evaluate(el=>{for(let p=el.parentElement;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;});await page.locator('[data-lock="pStock,pKStock"]').click();await fill('pStock','');assert.equal(await text('pKRateHero'),'—');assert.equal(await page.locator('#includeKphos').isChecked(),false);
  await patient('dextrose.html');await fill('dVolume',1);await fill('dTarget',1.25);assert.match(await text('dResult'),/1.5%/);assert.match(await text('dResult'),/Caution/);await mobile('dextrose');await fill('dVolume',0);assert.match(await text('dResult'),/Invalid/);
