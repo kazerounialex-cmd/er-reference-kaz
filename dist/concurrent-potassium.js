@@ -29,7 +29,19 @@ if(typeof document!=='undefined')(()=>{
  const saved=key=>{try{return sessionStorage.getItem(key);}catch{return null;}};
  const patient=()=>JSON.stringify([$('masterWeight').value,$('masterSpecies').value,saved('er-reference-patient-generation-v1')]);
  function save(){try{sessionStorage.setItem(key,JSON.stringify(state));}catch{}}
- function numeric(id){const f=$(id);if(!f||f.value.trim()===''||!f.checkValidity())throw Error('Missing input');return Number(f.value);}
+ function numeric(id){const f=$(id);if(!f||f.value.trim()===''||!f.checkValidity())throw Error('Missing input');return id==='pOtherK'?ReferenceNumbers.read(f):Number(f.value);}
+ function restoreKclPreparation(){
+  if(current!=='kcl')return;
+  const record=state.records.kcl;
+  if(!record?.valid||record.patient!==patient())return;
+  try{
+   const flow=FluidReferenceNumbers.value($('kRate'));
+   if(flow!==record.flow)return;
+   const input=JSON.parse(record.signature);
+   for(const [id,name] of [['kVolume','volume'],['kStock','stock'],['kOther','otherK'],['kTarget','target'],['kMethod','method']])$(id).value=String(input[name]);
+   if(typeof updatePotassium==='function')updatePotassium();
+  }catch{}
+ }
  function capture(){
   let r;
   try{
@@ -67,7 +79,7 @@ if(typeof document!=='undefined')(()=>{
  document.addEventListener('click',event=>{if(event.target.closest('.rate-pick,.lyte-rate,[data-volume-target]'))setTimeout(capture,0);});
  document.querySelectorAll('form').forEach(form=>form.addEventListener('reset',()=>setTimeout(()=>{state.included[current]=false;state.reviewed=false;capture();},0)));
  window.addEventListener('newpatient',()=>{state=empty();save();render();});
- window.addEventListener('patientrestored',()=>{state=read();capture();});
- window.addEventListener('pageshow',()=>{state=read();capture();});
- capture();
+ window.addEventListener('patientrestored',()=>{state=read();restoreKclPreparation();capture();});
+ window.addEventListener('pageshow',()=>{state=read();restoreKclPreparation();capture();});
+ restoreKclPreparation();capture();
 })();

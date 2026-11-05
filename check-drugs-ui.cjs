@@ -16,9 +16,9 @@ console.log(`Drug-row edit evaluates one row rather than all ${catalog.length} c
 
 // Invalid liquid stock is an error, not an oral/solid formulation fallback.
 els.weight.value='10';els.species.value='Dog';els.maropitantDose.value='1';
-for(const stock of ['', '0', '-1']){els.maropitantStock.value=stock;els.maropitantStock.listener();assert.match(els.maropitantResult.textContent,/Invalid stock/);}
+for(const stock of ['', '0', '-1']){els.maropitantStock.value=stock;els.maropitantStock.listener();assert.match(els.maropitantResult.textContent,/Invalid additive/);}
 els.maropitantStock.value='10';els.maropitantStock.listener();assert(els.maropitantResult.innerHTML.includes('1.0 mL'));
-els.gabapentinStock.value='';els.gabapentinDose.value='10';els.gabapentinDose.listener();assert(els.gabapentinResult.innerHTML.includes('No liquid stock'));
+els.gabapentinStock.value='';els.gabapentinDose.value='10';els.gabapentinDose.listener();assert(els.gabapentinResult.innerHTML.includes('No liquid additive'));
 // The existing workbook cap also applies to the stock amount actually displayed:
 // 20 kg × .05 mg/kg = 1 mg; 1/18 mL rounds to .06 mL = 1.08 mg.
 els.weight.value='20';els['acepromazineDose'].value='.05';els['acepromazineStock'].value='18';els['acepromazineDose'].listener();assert.match(els.acepromazineResult.textContent,/existing workbook 1 mg cap/);

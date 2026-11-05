@@ -11,8 +11,49 @@ for path in (Path(__file__).resolve().parents[1]/'dist').glob('*.html'):
   grid.add(N('label',children=['Diluted preparation pump rate ',N('span',children=['mL/hr']),N('input',[('id','mPump'),('type','number'),('min','.001'),('step','any'),('required',None)])]))
   grid.add(N('p',[('class','help magnesium-link-note')],['Linked: pump rate = final volume ÷ duration. Edit rate or duration; the other updates. This is the complete diluted infusion, not the MgSO₄ stock rate.']))
  if path.name=='potassium.html':
+  if not root.all(lambda n:n.cls('k-preparation-grid')):
+   rate=root.byid('kRate').parent;grid=rate.parent;grid.addcls('k-preparation-grid')
+   volume=root.byid('kVolume').parent
+   stack=grid.add(N('div',[('class','k-volume-stock')]))
+   stack.add(volume)
+   stack.add(root.one(lambda n:n.cls('stock-bar')))
+   stack.add(root.byid('kStockEditor'))
+   custom=root.byid('kTarget').parent
+   chart=custom.parent;position=chart.children.index(custom)
+   note=next(n for n in chart.children[position+1:] if isinstance(n,N) and n.tag=='p')
+   box=grid.add(N('div',[('class','k-custom-panel')]))
+   box.add(custom);box.add(note);note.attrs['id']='kCustomHelp'
+   custom.children[0]='Selected / custom rate '
+   root.byid('kTarget').attrs['placeholder']='Enter 0–0.5'
+   root.byid('kTarget').attrs['aria-describedby']='kCustomHelp'
+  if not root.all(lambda n:n.attrs.get('id')=='kTargetBottom'):
+   chart=root.one(lambda n:n.cls('compact-dose-chart'))
+   bottom=chart.add(N('div',[('class','k-custom-panel k-custom-bottom')]))
+   label=bottom.add(N('label',[('class','custom-target')],['Selected / custom rate ',N('span',children=['mEq/kg/hr'])]))
+   label.add(N('input',[('id','kTargetBottom'),('type','number'),('min','0'),('max','0.5'),('step','any'),('required',None),('placeholder','Enter 0–0.5'),('aria-describedby','kCustomBottomHelp')]))
+   bottom.add(N('p',[('class','help'),('id','kCustomBottomHelp')],['Same selected rate as the control above. Editing either updates this preparation.']))
   for b in root.all(lambda n:n.cls('rate-pick')):
    if not b.all(lambda n:n.cls('rate-unit')):b.add(N('small',[('class','rate-unit')],['mEq/kg/hr']))
+  for row in range(5):
+   for j,b in enumerate(root.all(lambda n:n.tag=='button' and n.attrs.get('data-row')==str(row))):
+    reason_id=f'kRateReason{row}_{j}'
+    b.attrs['aria-describedby']=reason_id
+    if root.all(lambda n:n.attrs.get('id')==reason_id):continue
+    parent=b.parent;position=parent.children.index(b)
+    option=parent.add(N('div',[('class','k-rate-option')]),position);option.add(b)
+    option.add(N('small',[('id',reason_id),('class','k-rate-unavailable'),('hidden',None)]))
+  # Put reasons in the right-hand stock-volume cell, beside the option's result.
+  for row in range(5):
+   amount=root.byid('kMl'+str(row))
+   if amount.tag=='td':
+    cell=amount;id=cell.attrs.pop('id')
+    value=N('span',[('id',id)],cell.children);cell.children=[];cell.add(value)
+   else:cell=amount.parent
+   for j,b in enumerate(root.all(lambda n:n.tag=='button' and n.attrs.get('data-row')==str(row))):
+    cell.add(root.byid(f'kRateReason{row}_{j}'))
+  if not root.all(lambda n:n.attrs.get('id')=='kRoundingPolicy'):
+   conventions=root.one(lambda n:n.tag=='details' and n.cls('panel'))
+   conventions.add(N('p',[('id','kRoundingPolicy')],['Targets remain limited to 0.5 mEq/kg/hr. The clinician-selected display-rounding allowance permits calculated delivery through 0.5010 mEq/kg/hr, with a warning above 0.5000. This allowance is not an AAHA recommendation. Suggested stock reductions are not applied automatically. Calculations retain full precision.']))
  for field in root.all(lambda n:n.tag=='input' and n.attrs.get('id') in ids and n.attrs.get('type')=='number'):
   id=field.attrs['id']
   if root.all(lambda n:n.attrs.get('data-volume-for')==id):continue

@@ -34,16 +34,16 @@ for(const method of ['add','final'])for(const weight of [0.5,5,30])for(const tar
  near(result.diluent+result.additive,result.finalVolume);
 }
 for(const change of [{weight:0},{fluidRate:0},{volume:0},{stock:0},{target:.501},{otherK:.11},{target:-1},{stock:.01},{weight:Infinity},{method:'invalid'}])assert.throws(()=>calculatePotassium({...k,...change}));
-console.log('Passed: potassium preparation methods, concurrent supplementation, stock and flow changes, workbook sample, zero-addition and invalid cases, and 36 mass-balance scenarios.');
+console.log('Passed: potassium preparation methods, concurrent supplementation, additive and flow changes, workbook sample, zero-addition and invalid cases, and 36 mass-balance scenarios.');
 
 // Exercise chart, selection, and stock-lock behavior without a browser.
 const vm=require('node:vm'),fs=require('node:fs');
 const elements={};
 function element(value='') {return {value,textContent:'',hidden:false,readOnly:false,open:false,disabled:false,attrs:{},listeners:{},children:[],addEventListener(name,fn){const previous=this.listeners[name];this.listeners[name]=previous?event=>{previous(event);fn(event);}:fn;},dispatchEvent(event){this.listeners[event.type]?.(event);},setAttribute(k,v){this.attrs[k]=v;},replaceChildren(...children){this.children=children;},focus(){},scrollIntoView(){},checkValidity(){return this.value!=='' && Number.isFinite(Number(this.value)) && Number(this.value)>=0;}};}
-for(const id of ['kPeripheralWarning','kPeripheralHeading','kPeripheralMessage','kWeight','kTarget','kRate','kVolume','kStock','kOther','kMethod','kMethodHelp','kAdd','kDiluent','kFinalVolume','kAddedMEq','kConcentration','kHours','kDelivered','kStatus','potassiumForm','kStockDisplay','kChartStatus','kMath','kMathSteps','kStockToggle','kStockEditor','kLockState','kStockHelp','kResults','kSettingsLabel'])elements[id]=element();
+for(const id of ['kPeripheralWarning','kPeripheralHeading','kPeripheralMessage','kWeight','kTarget','kTargetBottom','kRate','kVolume','kStock','kOther','kMethod','kMethodHelp','kAdd','kDiluent','kFinalVolume','kAddedMEq','kConcentration','kConcentrationL','kHours','kDelivered','kStatus','potassiumForm','kStockDisplay','kChartStatus','kMath','kMathSteps','kStockToggle','kStockEditor','kLockState','kStockHelp','kResults','kSettingsLabel'])elements[id]=element();
 const rates=[[.5],[.3,.4],[.2,.25],[.1,.15],[.05]];
 const buttons=[];
-rates.forEach((rr,i)=>{elements['kEq'+i]=element();elements['kMl'+i]=element();rr.forEach(rate=>{const b=element();b.dataset={rate:String(rate),row:String(i)};buttons.push(b);});});
+rates.forEach((rr,i)=>{elements['kEq'+i]=element();elements['kMl'+i]=element();rr.forEach((rate,j)=>{elements[`kRateReason${i}_${j}`]=element();const b=element();b.dataset={rate:String(rate),row:String(i)};buttons.push(b);});});
 for(const [id,value] of Object.entries({kWeight:'20',kTarget:'',kRate:'50',kVolume:'1000',kStock:'2',kOther:'0',kMethod:'final'}))elements[id].value=value;
 elements.kStock.readOnly=true;elements.kStockEditor.hidden=true;
 const ctx={PreparationCheck:require('./dist/preparation-check.js'),ReferenceNumbers:require('./dist/number-format.js'),document:{getElementById:id=>elements[id],createElement:()=>element(),querySelectorAll:selector=>selector==='.rate-pick'?buttons:buttons.filter(b=>selector===`[data-row="${b.dataset.row}"]`)},calculatePotassium,setTimeout:fn=>fn()};
@@ -69,7 +69,7 @@ elements.kOther.value='0';elements.kStock.value='2';elements.kRate.value='50';el
 // Browser resets values before reset callback; simulate that default action.
 elements.kStock.readOnly=false;elements.kStock.value='2';elements.kWeight.value='';elements.kTarget.value='';elements.potassiumForm.listeners.reset();assert.equal(elements.kStock.readOnly,true);assert.equal(elements.kStockEditor.hidden,true);assert.equal(elements.kStockDisplay.textContent,'2');assert.equal(elements.kAdd.textContent,'—');
 const html=fs.readFileSync('./dist/potassium.html','utf8');assert.match(html, /id="kStock"[^>]*readonly/);assert.ok(html.indexOf('dose-reference-title')<html.indexOf('id="kResults"'));
-console.log('Passed: live chart, lower/upper selection, worked math, flow updates, stock lock/unlock, invalid-state clearing, concurrent K conflicts, custom target, preparation mode, and reset (simulated DOM).');
+console.log('Passed: live chart, lower/upper selection, worked math, flow updates, additive lock/unlock, invalid-state clearing, concurrent K conflicts, custom target, preparation mode, and reset (simulated DOM).');
 
 // Integrate actual shared-patient events, including fields outside the form.
 for(const id of ['masterWeight','masterSpecies','clearPatient','patientSessionNote'])elements[id]=element();
@@ -86,17 +86,17 @@ elements.clearPatient.dispatchEvent(new ctx.Event('click'));
 assert.equal(elements.kAdd.textContent,'—');assert.ok(buttons.every(b=>b.disabled));assert.equal(elements.kMathSteps.children.length,0);
 console.log('Potassium/shared-patient integration passed: restored weight, live edits, chart updates, clearing and disabled selections.');
 
-// Use unrounded final preparation concentration for peripheral warnings.
-Object.assign(elements.kWeight,{value:'20'});elements.kOther.value='0';elements.kRate.value='50';elements.kVolume.value='1000';elements.kStock.value='2';elements.kMethod.value='final';
-function warningAt(c){elements.kTarget.value=String(c*50/20);vm.runInContext('updatePotassium()',ctx);}
-for(const c of [.039999,.04,.059999]){warningAt(c);assert.equal(elements.kConcentration.attrs['data-monitor'],'false');assert.equal(elements.kPeripheralWarning.hidden,true);assert.equal(elements.kPeripheralMessage.textContent,'');}
-warningAt(.06);assert.equal(elements.kPeripheralWarning.hidden,false);assert.equal(elements.kConcentration.attrs['data-monitor'],'true');assert.equal(elements.kPeripheralHeading.textContent,'Catheter monitoring');assert.equal(elements.kPeripheralWarning.attrs['data-level'],'near');assert.match(elements.kPeripheralMessage.textContent,/Current: 0.06 mEq\/mL/);assert.match(elements.kPeripheralMessage.textContent,/pain, redness, swelling or phlebitis/);assert.doesNotMatch(elements.kPeripheralMessage.textContent,/ABOVE|NEAR|before administration/);
-warningAt(.060001);assert.equal(elements.kPeripheralWarning.attrs['data-level'],'above');
+// Clinician-selected peripheral concentration: below / at / above 0.2 mEq/mL.
+Object.assign(elements.kWeight,{value:'20'});elements.kOther.value='0';elements.kRate.value='40';elements.kVolume.value='1000';elements.kStock.value='2';elements.kMethod.value='final';
+function warningAt(c){elements.kTarget.value=String(c*40/20);vm.runInContext('updatePotassium()',ctx);}
+for(const c of [.039999,.04,.059999,.06,.199999]){warningAt(c);assert.equal(elements.kConcentration.attrs['data-monitor'],'false');assert.equal(elements.kPeripheralWarning.hidden,true);assert.equal(elements.kPeripheralMessage.textContent,'');}
+warningAt(.2);assert.equal(elements.kConcentrationL.textContent,'200.0 mEq/L');assert.equal(elements.kPeripheralWarning.hidden,false);assert.equal(elements.kConcentration.attrs['data-monitor'],'true');assert.equal(elements.kPeripheralHeading.textContent,'At peripheral KCl limit');assert.equal(elements.kPeripheralWarning.attrs['data-level'],'near');assert.match(elements.kPeripheralMessage.textContent,/Current: 0.20 mEq\/mL/);assert.match(elements.kPeripheralMessage.textContent,/pain, redness, swelling or phlebitis/);assert.doesNotMatch(elements.kPeripheralMessage.textContent,/ABOVE|NEAR|before administration/);
+warningAt(.200001);assert.equal(elements.kPeripheralWarning.attrs['data-level'],'above');assert.equal(elements.kPeripheralHeading.textContent,'Above peripheral KCl limit');
 elements.kMethod.value='add';vm.runInContext('updatePotassium()',ctx);assert.equal(elements.kPeripheralWarning.attrs['data-level'],'above');
 // Potassium delivered separately is not part of this bag's concentration.
-elements.kOther.value='.1';elements.kTarget.value='.15';vm.runInContext('updatePotassium()',ctx);assert.equal(elements.kPeripheralWarning.hidden,true);assert.equal(elements.kConcentration.textContent,'0.02 mEq/mL');
-elements.kWeight.value='';elements.kWeight.dispatchEvent({type:'input'});assert.equal(elements.kPeripheralWarning.hidden,true);assert.equal(elements.kPeripheralMessage.textContent,'');assert.equal(elements.kConcentration.textContent,'—');
-console.log('Peripheral KCl warnings passed: below/at/above 0.06 mEq/mL, both preparation methods, separate K exclusion and stale-warning clearing.');
+elements.kOther.value='.1';elements.kTarget.value='.15';vm.runInContext('updatePotassium()',ctx);assert.equal(elements.kPeripheralWarning.hidden,true);assert.equal(elements.kConcentration.textContent,'0.03 mEq/mL');
+elements.kWeight.value='';elements.kWeight.dispatchEvent({type:'input'});assert.equal(elements.kPeripheralWarning.hidden,true);assert.equal(elements.kPeripheralMessage.textContent,'');assert.equal(elements.kConcentration.textContent,'—');assert.equal(elements.kConcentrationL.textContent,'—');
+console.log('Peripheral KCl warnings passed: approved 0.2 boundary, both methods, separate-K exclusion and invalid clearing.');
 
 assert.match(fs.readFileSync('dist/potassium.html','utf8'),/id="kPeripheralWarning"[^>]*role="status"/);
 
@@ -132,4 +132,51 @@ assert.equal(elements.kAdd.textContent,'20.4');
 const shownAdd=20.4,shownCarrier=1000;
 const expectedShownDose=shownAdd*2/(shownCarrier+shownAdd)*50/20;
 assert(Math.abs(Number(elements.kDelivered.textContent.split(' ')[0])-expectedShownDose)<.005);
-assert.equal(elements.kDelivered.textContent,'0.10 mEq/kg/hr');
+assert.equal(elements.kDelivered.textContent,'0.1000 mEq/kg/hr');
+
+// Both visible rate controls edit one canonical selection, not separate infusions.
+for(const [id,value]of Object.entries({kWeight:'10',kRate:'50',kVolume:'1000',kStock:'2',kOther:'0',kMethod:'final',kTarget:''}))elements[id].value=value;
+elements.kTargetBottom.value='.2';elements.potassiumForm.listeners.input({target:{id:'kTargetBottom',value:'.2'}});
+assert.equal(elements.kTarget.value,'.2');assert.equal(elements.kAdd.textContent,'20.0');
+elements.kTarget.value='.1';elements.potassiumForm.listeners.input({target:elements.kTarget});assert.equal(elements.kTargetBottom.value,'.1');assert.equal(elements.kAdd.textContent,'10.0');
+buttons.find(b=>b.dataset.rate==='0.3').listeners.click();assert.equal(elements.kTargetBottom.value,'0.3');assert.equal(elements.kAdd.textContent,'30.0');
+for(const value of ['.6','']){elements.kTargetBottom.value=value;elements.potassiumForm.listeners.input({target:{id:'kTargetBottom',value}});assert.equal(elements.kTarget.value,value);assert.equal(elements.kAdd.textContent,'—');}
+elements.kTarget.value='';elements.kTargetBottom.value='.3';elements.potassiumForm.listeners.reset();assert.equal(elements.kTargetBottom.value,'');
+console.log('Dual potassium custom controls passed: bottom/top edits, chart selection, one-dose calculations, invalid/blank clearing and reset.');
+
+// 12 kg, 44 mL/hr, 500 mL at 0.5: exact stock 34.090909... mL.
+// Displayed 34.1 × 2 / 500 × 44 / 12 = 0.500133333... mEq/kg/hr.
+for(const [id,value]of Object.entries({kWeight:'12',kRate:'44',kVolume:'500',kStock:'2',kOther:'0',kMethod:'final',kTarget:''}))elements[id].value=value;
+vm.runInContext('updatePotassium()',ctx);
+assert.equal(buttons.find(b=>b.dataset.rate==='0.5').disabled,false);
+assert.equal(elements.kRateReason0_0.hidden,false);
+assert.match(elements.kRateReason0_0.textContent,/Rounding warning: 0.5001 mEq\/kg\/hr/);
+assert.match(elements.kRateReason0_0.textContent,/Reduce additive to 34.0 mL/);
+// At 44.1 mL/hr, rounded stock 34.0 mL delivers 0.4998: allow it.
+elements.kRate.value='44.1';vm.runInContext('updatePotassium()',ctx);assert.equal(buttons.find(b=>b.dataset.rate==='0.5').disabled,false);assert.equal(elements.kRateReason0_0.hidden,true);
+// The clinician-approved allowance keeps 0.5005 available with a warning.
+elements.kRate.value='55';vm.runInContext('updatePotassium()',ctx);assert.equal(buttons.find(b=>b.dataset.rate==='0.5').disabled,false);assert.match(elements.kRateReason0_0.textContent,/0.5005/);
+// At 50 mL/hr, 30 mL stock delivers exactly 0.5: clear the old warning.
+elements.kRate.value='50';vm.runInContext('updatePotassium()',ctx);assert.equal(buttons.find(b=>b.dataset.rate==='0.5').disabled,false);assert.equal(elements.kRateReason0_0.hidden,true);assert.equal(elements.kRateReason0_0.textContent,'');
+elements.kOther.value='.2';vm.runInContext('updatePotassium()',ctx);assert.match(elements.kRateReason4_0.textContent,/Other potassium infusions already exceed/);
+elements.kWeight.value='';vm.runInContext('updatePotassium()',ctx);assert.equal(elements.kRateReason4_0.hidden,true);assert.equal(elements.kRateReason4_0.textContent,'');
+console.log('Disabled potassium reasons passed: rounding above limit, exact-limit re-enabling, concurrent K conflict and stale-reason clearing.');
+
+// Independently derived reduction: 34.0 × 2 / 500 = 0.136 mEq/mL;
+// 0.136 × 44 / 12 = 0.4986666667 mEq/kg/hr. Recommendation is not applied.
+elements.kWeight.value='12';elements.kOther.value='0';elements.kRate.value='44';elements.kTarget.value='.5';vm.runInContext('updatePotassium()',ctx);
+assert.equal(elements.kAdd.textContent,'34.1');assert.equal(elements.kDelivered.textContent,'0.5001 mEq/kg/hr');
+assert.match(elements.kRateReason0_0.textContent,/Reduce additive to 34.0 mL → 0.4987 mEq\/kg\/hr\.$/);
+// Exact drug 250.5 mL, exact pump 500/501 mL/hr → displayed pump 1.00.
+// 250.5 × 2 / 1000 × 1 / 1 = 0.501 mEq/kg/hr.
+const P=require('./dist/preparation-check.js');
+const boundary={weight:1,target:.5,fluidRate:500/501,volume:1000,stock:2,otherK:0,method:'final'};
+const exactResult=calculatePotassium(boundary);
+const allowed=P.potassium(boundary,exactResult);near(allowed.delivered,.501);assert.equal(allowed.deliveryWarning,true);
+const above={...boundary,fluidRate:500/501.2};assert.throws(()=>P.potassium(above,calculatePotassium(above)),/0.5010/);
+assert.throws(()=>calculatePotassium({...boundary,target:.501}),/0.5/);
+console.log('Approved potassium display allowance passed: warning, four-place display, 0.1 mL reduction math, inclusive boundary and unchanged target limit.');
+
+const reducedExample={weight:12,target:.5,fluidRate:44,volume:500,stock:2,otherK:0,method:'final'};
+const reducedVerification=P.potassium(reducedExample,calculatePotassium(reducedExample)).roundDown;
+near(reducedVerification.drug,34);near(reducedVerification.concentration,.136);near(reducedVerification.delivered,.49866666666666665);

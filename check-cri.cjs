@@ -24,7 +24,7 @@ const order=['fentanyl','lidocaine','ketamine','norepinephrine','insulin','regla
 console.log('CRI checks passed: rate/unit conversions, mass balance, syringe timing, insulin delivery, invalid states, feline lidocaine block/recovery, access limits, normalized preparations and ordered navigation (simulated DOM).');
 
 // Print snapshots follow valid fixed preparations and clear on invalid patient/settings.
-let printUi=ui('fentanyl');assert.equal(printUi.els.criPrintButton.disabled,false);assert(printUi.els.criPrintTable.innerHTML.includes('mcg/kg/hr'));assert(printUi.els.criPrintMix.textContent.includes('2.4 mL stock'));printUi.els.criPrintButton.onclick();assert.equal(printUi.printCount(),1);
+let printUi=ui('fentanyl');assert.equal(printUi.els.criPrintButton.disabled,false);assert(printUi.els.criPrintTable.innerHTML.includes('mcg/kg/hr'));assert(printUi.els.criPrintMix.textContent.includes('2.4 mL additive'));printUi.els.criPrintButton.onclick();assert.equal(printUi.printCount(),1);
 printUi=ui('lidocaine','Cat');assert.equal(printUi.els.criPrintButton.disabled,true);assert.equal(printUi.els.criPrintTable.innerHTML,'');
 printUi=ui('ketamine');assert(printUi.els.criPrintTable.innerHTML.includes('mg/kg/hr'));assert(printUi.els.criPrintMeta.textContent.includes('1.0 mg/mL'));
 printUi=ui('insulin');assert(printUi.els.criPrintRate.textContent.includes('0.10 U/kg/hr'));assert(printUi.els.criPrintFormula.textContent.includes('50.0 U'));assert.equal(printUi.els.criPrintTable.innerHTML,'');assert(printUi.html.includes('class="print-bg-guide"'));assert(printUi.html.indexOf('id="criPrintRate"')<printUi.html.indexOf('class="print-bg-guide"'));
@@ -51,6 +51,6 @@ assert(tinyInsulin.els.criPrintRate.textContent.includes('0.12 U/kg/hr'));
 assert(tinyInsulin.els.criPrintRate.textContent.includes('prescribed target 0.1 U/kg/hr'));
 near(Number(tinyInsulin.els.insDose.value),.1);
 const roundedGuard=ui('norepinephrine');roundedGuard.setAccess('central');roundedGuard.els.prepConcentration.value='64';roundedGuard.els.prepConcentration.fire('input');
-assert(roundedGuard.els.prepResult.textContent.includes('Rounded stock'));
+assert(roundedGuard.els.prepResult.textContent.includes('Rounded additive'));
 assert(roundedGuard.els.prepResult.textContent.includes('central 64'));
 assert.equal(roundedGuard.els.printNorepiChart.disabled,true);

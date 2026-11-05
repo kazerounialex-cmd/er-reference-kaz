@@ -92,7 +92,7 @@ Website source commit: `46083220a292d6440d9caf1810f1bf5249cc5592` (hosted versio
 - Shared fluid-rate banner includes the calculated maintenance/deficit/loss breakdown and planned volume/duration.
 - KCl and phosphate follow the shared rate. Local edits create overrides; **Use shared rate** reconnects them. Display rounding does not alter calculations.
 - Magnesium retains its separate pump rate linked to volume and duration.
-- KCl concentration is highlighted at or above 0.06 mEq/mL with a gentle catheter monitoring reminder. This is a conservative irritation reference, not a universal toxicity cutoff.
+- KCl concentration is highlighted at or above the clinician-selected peripheral limit of 0.2 mEq/mL, separate from the dose-rate limits. References in the context disclosure are not attributed as support for this selected value.
 - Patient and fluid data remain in the browser tab session. Clear patient clears the shared rate and overrides.
 - Cloudflare Workers builds run the suite through `wrangler.json` before deployment. No GitHub Actions workflow is currently committed.
 
@@ -125,3 +125,19 @@ The original stronger navigation accents are retained, with pale category-colore
 ## Chocolate source verification
 
 `CHOCOLATE-SOURCE-REVIEW.md` records the evidence comparison and access limits. Keep the source detail in `scripts/chocolate-sources.html`; `scripts/chocolate-source-record.py` applies it and the central source summary to existing pages, and the shared finalizer runs it after generation. The expandable concentration table is rendered directly from `ChocolateCalc.products`, with mg/oz equivalents calculated from its unrounded mg/g values. Clinical references and clinician-selected guidance must remain distinguishable; an observational study does not validate thresholds or a treatment protocol. Run the complete suite after edits.
+
+## Phosphate: additional potassium from KCl
+
+The top KCl box defaults to the current patient's verified KCl contribution (excluding K already credited from other infusions). Concurrent use must be confirmed before it enters the selected KPhos total. Manual overrides and confirmation persist in this tab; **Use KCl calculator** reconnects, and **New patient** clears them. Invalid/stale linked rates clear dependent preparation results while confirmed. The older full source reconciliation remains optional below. The combined phosphate/K limit remains 0.5 mEq/kg/hr.
+
+`scripts/phosphate-kcl-layout.py` maintains the layout after generation; `dist/phosphate-kcl.js` owns the link/override state. Run `ER_REFERENCE_TEST_URL=http://127.0.0.1:8000 node scripts/check-phosphate-kcl-browser.cjs` for the optional real-browser regression covering navigation, exact totals, no double counting, local override/relink, confirmation, changed/invalid source, patient reset and the 0.2 mEq/mL peripheral boundary.
+
+## Magnesium daily references
+
+The clinician-selected choices are 1.0 mEq/kg/day generally and 0.5 mEq/kg/day for azotemic patients. These are mEq, not mg. Optional total-Mg context does not choose a dose; the existing above-interval guard remains active. The potassium page links directly to magnesium preparation for refractory hypokalemia at the dose-rate limit.
+
+`scripts/simple-magnesium.py` maintains this layout after generation. With a local server running, `ER_REFERENCE_TEST_URL=http://127.0.0.1:8000 node scripts/check-magnesium-reference-browser.cjs` checks independent preparation amounts, duration scaling, optional lab updates, the high-Mg guard, mobile navigation and print generation. Software checks do not establish clinical validation.
+
+## Fixed input units
+
+`dist/input-units.js` places existing field units inside a non-editable suffix, leaving numeric values, field IDs and calculation listeners intact. It also handles newly added rows and selected chocolate/drug units. `scripts/input-units.py` attaches the shared script after page generation. Labels retain units for accessibility; unit selectors keep their existing behavior. Run `ER_REFERENCE_TEST_URL=http://127.0.0.1:8000 node scripts/check-input-units-browser.cjs` for desktop/mobile suffix bounds, numeric entry, selected-unit changes and print generation.

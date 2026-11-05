@@ -35,10 +35,10 @@ const {chromium}=require('playwright');
   await fill(volume,500);
   const stock=20*2*(500/plannerRate)/24/5;
   const stockText=stock.toFixed(stock<1?2:1);
-  assert((await text(result)).includes(stockText+' mL'),'Reglan stock must use the unrounded linked rate');
+  assert((await text(result)).includes(stockText+' mL'),'Reglan additive must use the unrounded linked rate');
   if(file==='cri-reglan.html'){
    await page.locator('#criPrintMethod').selectOption('rBag');
-   assert((await text('criPrintMix')).includes(stock.toFixed(stock<1?2:1)+' mL stock'));
+   assert((await text('criPrintMix')).includes(stock.toFixed(stock<1?2:1)+' mL additive'));
    await fill('r12Pump',2);
   }
   await fill(id,25);await fill('sharedFluidRate',60);
@@ -66,6 +66,7 @@ const {chromium}=require('playwright');
  assert.equal(await text('kAdd'),'0.15');assert.equal(await text('kDiluent'),'11.9 mL');
  await page.locator('#includeKcl').check();await page.locator('#allPotassiumSources').check();assert.match(await text('concurrentTotal'),/Combined supplemental K: 0\.10 mEq/);
  await go('phosphate.html');await fill('pVolume',12);await fill('pDose',.03);
+ await page.locator('#concurrentPotassium').evaluate(node=>{if(node.tagName==='DETAILS')node.open=true;});
  await page.locator('#includeKphos').check();await page.locator('#allPotassiumSources').check();
  assert.match(await text('concurrentTotal'),/Combined supplemental K: 0.14 mEq/);
  assert.match(await text('concurrentContributions'),/KCl: 0\.10.*KPhos: 0\.04/);
@@ -82,12 +83,29 @@ const {chromium}=require('playwright');
  await go('cri-lidocaine.html');assert.equal(await page.locator('#criPrintButton').isDisabled(),true);
  await go('cri-insulin.html');assert.equal(await page.getByText('Exactly 200 mg/dL',{exact:true}).count(),2);
  await page.emulateMedia({media:'print'});await page.pdf({path:'/tmp/er-insulin-clinical-review.pdf',format:'Letter'});await page.emulateMedia({media:'screen'});
+ // Reported disabled 0.5 option: rounded stock can exceed the unchanged ceiling.
+ await go('potassium.html');await page.locator('#masterSpecies').selectOption('dog');
+ await fill('masterWeight',12);await fill('kRate',44);await fill('kVolume',500);
+ const maxRate=page.locator('.rate-pick[data-rate="0.5"]'),roundingReason=page.locator('#kRateReason0_0');
+ assert.equal(await maxRate.isEnabled(),true);assert.equal(await roundingReason.isVisible(),true);
+ assert.match(await roundingReason.innerText(),/Rounding warning: 0.5001/);
+ assert.equal(await maxRate.getAttribute('aria-describedby'),'kRateReason0_0');
+ await page.locator('#kRow0').screenshot({path:'/tmp/potassium-disabled-reason.png'});
+ await fill('kRate',44.1);assert.equal(await maxRate.isEnabled(),true);assert.equal(await roundingReason.isVisible(),false);
+ await fill('kRate',50);await maxRate.click();assert.equal(await text('kAdd'),'30.0');
+ await fill('kRate',44);assert.equal(await text('kAdd'),'34.1');assert.equal(await text('kDelivered'),'0.5001 mEq/kg/hr');assert.match(await roundingReason.innerText(),/34.0 mL → 0.4987 mEq\/kg\/hr/);assert.equal(await roundingReason.evaluate(n=>n.parentElement.tagName==='TD'&&n.parentElement.contains(document.getElementById('kMl0'))),true);
+ await page.locator('#kSettingsLabel').click();await fill('kOther',.2);
+ assert.match(await text('kRateReason4_0'),/Other potassium infusions already exceed/);
+ await fill('kOther',0);await fill('masterWeight',1);await fill('kVolume',1000);await fill('kRate',500/501);
+ assert.equal(await maxRate.isEnabled(),true);assert.equal(await text('kDelivered'),'0.5010 mEq/kg/hr');
+ await fill('kRate',500/501.2);assert.equal(await maxRate.isDisabled(),true);assert.equal(await text('kAdd'),'—');
+ await fill('kVolume','');assert.equal(await roundingReason.isVisible(),false);
  // Visit every page to exercise actual navigation scripts and layout at two widths.
  const files=require('node:fs').readdirSync('dist').filter(f=>f.endsWith('.html'));
  for(const width of [1440,390]){
   await page.setViewportSize({width,height:1000});
-  for(const file of files){await go(file);assert.equal(await page.locator('h1').count()>0,true,file);const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);assert.equal(overflow,false,`${file} at ${width}px`);}
+  for(const file of files){await go(file);assert.equal(await page.locator('h1').count()>0,true,file);assert.equal(await page.locator('body').evaluate(n=>/\bstocks?\b/i.test(n.innerText)),false,file+': visible terminology');const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);assert.equal(overflow,false,`${file} at ${width}px`);}
  }
- assert.deepEqual(errors,[]);console.log('Browser checks passed: 17 pages at desktop/phone widths, precision examples, local/global/history resets, rate sources, explicit concurrent K reconciliation, local-anesthetic warnings, feline CRI prohibition, insulin screen/print boundary text and no JavaScript page errors.');
+ assert.deepEqual(errors,[]);console.log('Browser checks passed: 17 pages at desktop/phone widths, precision examples, local/global/history resets, rate sources, disabled-rate reasons, explicit concurrent K reconciliation, local-anesthetic warnings, feline CRI prohibition, insulin screen/print boundary text and no JavaScript page errors.');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exit(1);});

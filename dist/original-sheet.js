@@ -33,10 +33,10 @@
   for(const name of fields)$('os-'+name).addEventListener('input',update);
   ['weight','species'].forEach(id=>$(id).addEventListener('input',update));
   $('os-neAccess').addEventListener('change',update);$('os-includePhos').addEventListener('change',update);
-  $('os-stocks').addEventListener('click',()=>{const unlock=$('os-stocks').getAttribute('aria-pressed')!=='true';grid.querySelectorAll('[data-stock]').forEach(el=>{el.readOnly=!unlock;});$('os-stocks').setAttribute('aria-pressed',String(unlock));$('os-stocks').textContent=unlock?'Lock stock concentrations':'Unlock stock concentrations';});
+  $('os-stocks').addEventListener('click',()=>{const unlock=$('os-stocks').getAttribute('aria-pressed')!=='true';grid.querySelectorAll('[data-stock]').forEach(el=>{el.readOnly=!unlock;});$('os-stocks').setAttribute('aria-pressed',String(unlock));$('os-stocks').textContent=unlock?'Lock additive concentrations':'Unlock additive concentrations';});
   $('os-fit').addEventListener('change',fit);
   if(typeof ResizeObserver!=='undefined')new ResizeObserver(fit).observe($('os-viewport'));
   window.addEventListener('resize',fit);
-  $('clearPatient').addEventListener('click',()=>{for(const name of fields)$('os-'+name).value=defaults[name];$('os-includePhos').checked=false;$('os-neAccess').value='peripheral';grid.querySelectorAll('.os-log').forEach(el=>{el.value='';});grid.querySelectorAll('[data-stock]').forEach(el=>{el.readOnly=true;});$('os-stocks').setAttribute('aria-pressed','false');$('os-stocks').textContent='Unlock stock concentrations';update();});
+  $('clearPatient').addEventListener('click',()=>{for(const name of fields)$('os-'+name).value=defaults[name];$('os-includePhos').checked=false;$('os-neAccess').value='peripheral';grid.querySelectorAll('.os-log').forEach(el=>{el.value='';});grid.querySelectorAll('[data-stock]').forEach(el=>{el.readOnly=true;});$('os-stocks').setAttribute('aria-pressed','false');$('os-stocks').textContent='Unlock additive concentrations';update();});
   update();fit();
 })();

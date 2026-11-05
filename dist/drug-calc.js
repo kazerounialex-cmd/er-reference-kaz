@@ -17,14 +17,14 @@ const DrugCalc={
   return {lidocaine,bupivacaine,combined:lidocaine>0&&bupivacaine>0};
  },
  preparation({weight,dose,stock,mode,volume,rate}){
-  if(![weight,dose,stock].every(x=>Number.isFinite(x)&&x>0))throw Error('Enter weight, selected dose and a positive stock concentration.');
+  if(![weight,dose,stock].every(x=>Number.isFinite(x)&&x>0))throw Error('Enter weight, selected dose and a positive additive concentration.');
   if(mode==='sq'){if(dose<.2||dose>.5)throw Error('SQ reference range is 0.2–0.5 mg/kg per dose.');const r={mg:weight*dose,ml:weight*dose/stock};if(!Object.values(r).every(x=>Number.isFinite(x)&&x>0))throw Error('Inputs exceed calculation limits.');return r;}
   if(!['syringe','bag'].includes(mode))throw Error('Choose an administration method.');
   if(dose<1||dose>2)throw Error('CRI reference range is 1–2 mg/kg/day.');
   if(!(volume>0&&Number.isFinite(volume)))throw Error('Enter the final preparation volume.');
   if(mode==='bag'&&!(rate>0&&Number.isFinite(rate)))throw Error('Enter a positive fluid pump rate.');
   const hours=mode==='syringe'?12:volume/rate, mg=weight*dose*hours/24, ml=mg/stock;
-  if(ml>volume)throw Error('Stock volume exceeds the final preparation volume. Increase volume or review concentration.');
+  if(ml>volume)throw Error('Additive volume exceeds the final preparation volume. Increase volume or review concentration.');
   if(![hours,mg,ml,weight*dose/24].every(x=>Number.isFinite(x)&&x>0))throw Error('Inputs exceed calculation limits.');
   return {hours,mg,ml,diluent:volume-ml,pump:volume/hours,mgHour:weight*dose/24};
  },

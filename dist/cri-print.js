@@ -36,7 +36,7 @@ if(typeof document!=='undefined')(()=>{
  const verified=PreparationCheck.cri(r,tool,weight);
  $('criPrintTitle').textContent=r.title+' · '+(tool==='insulin'?'insulin & dextrose reference':'titration reference');
  $('criPrintMeta').textContent=`${species} · ${show(weight)} kg | Fixed concentration: ${PreparationCheck.concentration(verified.concentration)} ${r.concentrationUnit} | ${show(verified.volume)} mL final.`;
- $('criPrintMix').textContent=PreparationCheck.instruction(verified,r.diluentName)+` Stock: ${show(r.stock)} ${tool==='insulin'?'U/mL':r.concentrationUnit}.`;
+ $('criPrintMix').textContent=PreparationCheck.instruction(verified,r.diluentName)+` Additive: ${show(r.stock)} ${tool==='insulin'?'U/mL':r.concentrationUnit}.`;
  $('criPrintRate').textContent=`Displayed pump ${show(verified.pump)} mL/hr delivers ${show(verified.delivered)} ${r.unit}; prescribed target ${r.dose} ${r.unit}. Nominal duration ${show(verified.hours)} hours before priming/discard. ${verified.note}`;
  if(tool==='insulin'){
  $('criPrintFormula').textContent=`Displayed preparation verification: ${show(verified.drug)} mL × ${show(r.stock)} U/mL = ${show(verified.amount)} U. ÷ ${show(verified.volume)} mL = ${PreparationCheck.concentration(verified.concentration)} U/mL. × ${show(verified.pump)} mL/hr ÷ ${show(weight)} kg = ${show(verified.delivered)} U/kg/hr. Prescribed target ${r.dose} U/kg/hr is unchanged. Preparation run time does not set DKA treatment duration.`;

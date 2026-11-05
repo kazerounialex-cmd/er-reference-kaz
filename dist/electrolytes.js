@@ -7,7 +7,7 @@ function number(id,optional=false){
   const field=e(id);
   if(optional && field.value.trim()==='')return null;
   if(field.value.trim()==='' || !field.checkValidity() || !Number.isFinite(Number(field.value)))throw Error('Complete the inputs with valid numbers.');
-  if(['pRate','nBagRate'].includes(id)&&typeof FluidReferenceNumbers!=='undefined')return FluidReferenceNumbers.value(field);
+  if(['pRate','nBagRate','pOtherK'].includes(id)&&typeof FluidReferenceNumbers!=='undefined')return FluidReferenceNumbers.value(field);
   return id==='mHours'&&magnesiumHours?.display===field.value?magnesiumHours.exact:Number(field.value);
 }
 function clearResult(id,message){
@@ -37,53 +37,62 @@ function chart(rates,run,render,targetId){
 function syncMagnesiumPump(){
   if(!e('mPump'))return;
   try{const hours=number('mHours'),volume=number('mVolume');
-    e('mPump').value=hours>0&&volume>0?ReferenceNumbers.display(volume/hours):'';
+    if(document.activeElement!==e('mPump'))e('mPump').value=hours>0&&volume>0?ReferenceNumbers.display(volume/hours):'';
   }catch{e('mPump').value='';}
 }
 function updateMagnesium(){
   syncMagnesiumPump();
+  for(const [mirror,source] of [['mResultPump','mPump'],['mResultHours','mHours']])if(e(mirror)&&document.activeElement!==e(mirror))e(mirror).value=e(source).value;
   let context=null, contextError='';
   try{
     const lower=number('mLower'),upper=number('mUpper');
     if(lower<=0||upper<=lower)throw Error('Check the bloodwork reference limits.');
-    e('mBand0').textContent=`Below ${lower} mg/dL — higher workbook option`;
-    e('mBand1').textContent=`${lower}–${upper} mg/dL + refractory K — lower workbook option`;
-    if(e('mBloodwork').value.trim()==='')e('mInterpretation').textContent=`Total Mg below ${lower} mg/dL: review 1 mEq/kg/day. Within ${lower}–${upper} with refractory K: review 0.5. Above ${upper}: neither workbook replacement option applies.`;
+    e('mBand0').textContent='Usual reference · iMg unavailable';
+    e('mBand1').textContent='Azotemic patient · lower reference';
+    if(e('mBloodwork').value.trim()==='')e('mInterpretation').textContent='Total Mg context is optional and does not select a dose. Usual reference: 1.0 mEq/kg/day; azotemic reference: 0.5 mEq/kg/day.';
     else{
       context=magnesiumContext({value:number('mBloodwork'),lower,upper,refractory:e('mRefractory').value==='yes'});
-      e('mInterpretation').textContent=context.band==='low'?`LOW total Mg relative to entered lab limits. Matching workbook option: higher dose, 1 mEq/kg/day. Select explicitly below.`:context.band==='high'?`HIGH total Mg relative to entered lab limits. Neither workbook replacement option applies; reassess before supplementation.`:context.workbookDose===.5?`WITHIN lab interval, with refractory K selected. Matching workbook option: lower dose, 0.5 mEq/kg/day.`:`WITHIN lab interval. The 0.5 workbook option also requires refractory hypokalemia; normal Mg alone does not establish an indication.`;
+      e('mInterpretation').textContent=context.band==='low'?'LOW total Mg relative to the entered interval. Dose selection remains clinical; use the lower reference for azotemic patients.':context.band==='high'?'HIGH total Mg relative to entered lab limits. Neither replacement option applies; reassess before supplementation.':'WITHIN the entered total-Mg interval. This does not establish ionized Mg status or automatically select a dose.';
     }
   }catch(error){contextError=error.message;e('mInterpretation').textContent=contextError;}
-  e('mContext0').setAttribute('data-context-match',String(context?.workbookDose===1));
-  e('mContext1').setAttribute('data-context-match',String(context?.workbookDose===.5));
+  e('mContext0').setAttribute('data-context-match',String(e('mDose').value!==''&&Number(e('mDose').value)===1));
+  e('mContext1').setAttribute('data-context-match',String(e('mDose').value!==''&&Number(e('mDose').value)===.5));
+  if(e('mPrimaryStatus')){
+    const warning=contextError||(context?.band==='high'?'Entered total Mg is above the lab interval. Replacement options are unavailable; review the lab context below.':'');
+    e('mPrimaryStatus').textContent=warning;e('mPrimaryStatus').hidden=!warning;
+  }
   const run=dailyDose=>{if(contextError)throw Error(contextError);if(context?.band==='high')throw Error('Current total Mg is above the entered interval; neither workbook replacement option applies.');return magnesium({weight:number('mWeight'),hours:number('mHours'),volume:number('mVolume'),stock:number('mStock'),dailyDose});};
   chart([[1],[.5]],run,(i,values)=>{e('mAmount'+i).textContent=values[0]?format(values[0].amount)+' mEq':'—';e('mMl'+i).textContent=values[0]?ml(values[0].additive):'— mL';},'mDose');
   attempt('mResult',()=>{
     const dose=number('mDose'),r=run(dose),weight=number('mWeight'),hours=number('mHours'),stock=number('mStock'),volume=number('mVolume');
     const verified=PreparationCheck.infusion({stockVolume:r.additive,stock,volume,pump:r.pump,weight,target:dose,multiplier:24,unit:'mEq/kg/day'});
-    result('mResult',[['MgSO₄ STOCK TO ADD',ml(r.additive)],['Carrier volume (approx.)',ml(verified.diluent)],['Prepared infusion volume',ml(verified.volume)],['Magnesium for this preparation',format(verified.amount)+' mEq'],['Diluted preparation pump rate',format(verified.pump)+' mL/hr'],['Delivered daily-equivalent dose',format(verified.delivered)+' mEq/kg/day']],[`Daily amount: ${weight} kg × ${dose} mEq/kg/day = ${format(weight*dose)} mEq/day.`,`Preparation amount: ${format(weight*dose)} × ${hours}/24 = ${format(r.amount)} mEq.`,`Stock volume: ${format(r.amount)} ÷ ${stock} mEq/mL = ${format(r.additive,6)} mL.`,`Carrier: ${volume} − ${format(r.additive,6)} = ${format(r.carrier,6)} mL.`,`Pump: ${volume} mL ÷ ${hours} hr = ${format(r.pump)} mL/hr.`,`Verification: ${format(r.amount)} mEq ÷ ${hours} hr ÷ ${weight} kg × 24 = ${format(r.delivered)} mEq/kg/day.`],'Stock volume is not an undiluted infusion rate. Dilute to the stated final volume; the carrier estimate is rounded. '+verified.note);
+    result('mResult',[['MgSO₄ ADDITIVE TO ADD',ml(r.additive)],['Carrier volume (approx.)',ml(verified.diluent)],['Prepared infusion volume',ml(verified.volume)],['Magnesium for this preparation',format(verified.amount)+' mEq'],['Diluted preparation pump rate',format(verified.pump)+' mL/hr'],['Delivered daily-equivalent dose',format(verified.delivered)+' mEq/kg/day']],[`Daily amount: ${weight} kg × ${dose} mEq/kg/day = ${format(weight*dose)} mEq/day.`,`Preparation amount: ${format(weight*dose)} × ${hours}/24 = ${format(r.amount)} mEq.`,`Additive volume: ${format(r.amount)} ÷ ${stock} mEq/mL = ${format(r.additive,6)} mL.`,`Carrier: ${volume} − ${format(r.additive,6)} = ${format(r.carrier,6)} mL.`,`Pump: ${volume} mL ÷ ${hours} hr = ${format(r.pump)} mL/hr.`,`Verification: ${format(r.amount)} mEq ÷ ${hours} hr ÷ ${weight} kg × 24 = ${format(r.delivered)} mEq/kg/day.`],'Additive volume is not an undiluted infusion rate. Dilute to the stated final volume; the carrier estimate is rounded. '+verified.note);
   });
 }
 function updatePhosphate(){
+  if(e('pKclTotal'))e('pKclTotal').textContent='Total potassium: —';
+  if(e('pKclTotalValue'))e('pKclTotalValue').textContent='—';
   for(const id of ['pKRateHero','pKHourlyHero','pKAmountHero'])e(id).textContent='—';
   e('pKHeroStatus').textContent='Choose a valid phosphate rate to show its potassium contribution.';
   const run=dose=>{const p={weight:number('pWeight'),fluidRate:number('pRate'),volume:number('pVolume'),phosStock:number('pStock'),kStock:number('pKStock'),otherK:number('pOtherK'),method:e('pMethod').value,dose};const r=phosphate(p);return {...r,verification:PreparationCheck.phosphate(p,r)};};
   chart([[.01,.02],[.03,.06],[.06,.12]],run,(i,values)=>{e('pK'+i).textContent=values.map(v=>v?format(v.verification.potassiumRate):'—').join(' – ');e('pMl'+i).textContent=values.map(v=>v?ml(v.additive):'— mL').join(' – ');},'pDose');
   attempt('pResult',()=>{
     const dose=number('pDose'),r=run(dose),weight=number('pWeight'),flow=number('pRate'),stock=number('pStock'),k=number('pKStock'),volume=number('pVolume'),other=number('pOtherK'),c=dose*weight/flow,verified=r.verification;
+    if(e('pKclTotalValue'))e('pKclTotalValue').textContent=verified.totalK.toFixed(4);
+    if(e('pKclTotal'))e('pKclTotal').textContent=`KPhos ${verified.potassiumRate.toFixed(4)} + KCl ${other.toFixed(4)} = ${verified.totalK.toFixed(4)} mEq/kg/hr`;
     e('pKRateHero').textContent=format(verified.potassiumRate);e('pKHourlyHero').textContent=format(verified.potassiumRate*weight);e('pKAmountHero').textContent=format(verified.potassiumAmount,1);
     e('pKHeroStatus').textContent=`Selected phosphate rate: ${dose} mmol/kg/hr. Combined entered supplemental K, including separate infusions: ${format(verified.totalK)} mEq/kg/hr.`;
-    result('pResult',[['KPHOS STOCK TO ADD',ml(r.additive)],['Carrier volume (approx.)',ml(verified.diluent)],['Final prepared volume',ml(verified.volume)],['Phosphate in preparation',format(verified.amount)+' mmol'],['Potassium in preparation',format(verified.potassiumAmount)+' mEq'],['K from KPhos',format(verified.potassiumRate)+' mEq/kg/hr'],['Combined entered supplemental K',format(verified.totalK)+' mEq/kg/hr'],['Run at',ReferenceNumbers.display(flow)+' mL/hr'],['Lasts',format(verified.hours)+' hr'],['Delivered phosphate rate',format(verified.delivered)+' mmol/kg/hr']],[`Phosphate needed: ${dose} mmol/kg/hr × ${weight} kg = ${format(dose*weight)} mmol/hr.`,`Required phosphate concentration: ${format(dose*weight)} ÷ ${flow} = ${format(c,6)} mmol/mL.`,e('pMethod').value==='final'?`Stock: ${volume} × ${format(c,6)} ÷ ${stock} = ${format(r.additive,6)} mL.`:`Stock: ${volume} × ${format(c,6)} ÷ (${stock} − ${format(c,6)}) = ${format(r.additive,6)} mL.`,`K contribution: ${dose} × ${k} ÷ ${stock} = ${format(r.kRate,6)} mEq/kg/hr.`,`Total entered supplemental K: ${format(r.kRate,6)} + ${other} = ${format(r.totalK,6)} mEq/kg/hr.`,`Phosphate check: ${format(r.phosphateAmount)} mmol ÷ ${format(r.finalVolume)} mL × ${flow} mL/hr ÷ ${weight} kg = ${format(r.delivered)} mmol/kg/hr.`],'No KCl co-mixing is calculated. Dilute to the final volume; the carrier estimate is rounded. If separately infused, use the displayed K contribution in the KCl separate-infusion field. '+verified.note);
+    result('pResult',[['KPHOS ADDITIVE TO ADD',ml(r.additive)],['Carrier volume (approx.)',ml(verified.diluent)],['Final prepared volume',ml(verified.volume)],['Phosphate in preparation',format(verified.amount)+' mmol'],['Potassium in preparation',format(verified.potassiumAmount)+' mEq'],['K from KPhos',format(verified.potassiumRate)+' mEq/kg/hr'],['Combined entered supplemental K',format(verified.totalK)+' mEq/kg/hr'],['Run at',ReferenceNumbers.display(flow)+' mL/hr'],['Lasts',format(verified.hours)+' hr'],['Delivered phosphate rate',format(verified.delivered)+' mmol/kg/hr']],[`Phosphate needed: ${dose} mmol/kg/hr × ${weight} kg = ${format(dose*weight)} mmol/hr.`,`Required phosphate concentration: ${format(dose*weight)} ÷ ${flow} = ${format(c,6)} mmol/mL.`,e('pMethod').value==='final'?`Additive: ${volume} × ${format(c,6)} ÷ ${stock} = ${format(r.additive,6)} mL.`:`Additive: ${volume} × ${format(c,6)} ÷ (${stock} − ${format(c,6)}) = ${format(r.additive,6)} mL.`,`K contribution: ${dose} × ${k} ÷ ${stock} = ${format(r.kRate,6)} mEq/kg/hr.`,`Total entered supplemental K: ${format(r.kRate,6)} + ${other} = ${format(r.totalK,6)} mEq/kg/hr.`,`Phosphate check: ${format(r.phosphateAmount)} mmol ÷ ${format(r.finalVolume)} mL × ${flow} mL/hr ÷ ${weight} kg = ${format(r.delivered)} mmol/kg/hr.`],'No KCl co-mixing is calculated. Dilute to the final volume; the carrier estimate is rounded. If separately infused, use the displayed K contribution in the KCl separate-infusion field. '+verified.note);
   });
 }
 function updateDextrose(){
-  const run=target=>{const base=number('dBase'),stock=number('dStock');if(stock<=base)throw Error('Dextrose stock must exceed carrier concentration.');return mixFinal({volume:number('dVolume'),target,base,stock});};
+  const run=target=>{const base=number('dBase'),stock=number('dStock');if(stock<=base)throw Error('Dextrose additive must exceed carrier concentration.');return mixFinal({volume:number('dVolume'),target,base,stock});};
   chart([[1.25],[2.5],[5]],run,(i,values)=>{e('dCarrier'+i).textContent=values[0]?ml(values[0].carrier):'— mL';e('dMl'+i).textContent=values[0]?ml(values[0].additive):'— mL';},'dTarget');
   attempt('dResult',()=>{
     const target=number('dTarget'),r=run(target),stock=number('dStock'),base=number('dBase'),volume=number('dVolume');
-    if(stock<=base)throw Error('Dextrose stock must be more concentrated than the carrier.');
+    if(stock<=base)throw Error('Dextrose additive must be more concentrated than the carrier.');
     const verified=PreparationCheck.mixture({stockVolume:r.additive,stock,base,volume,target,unit:'% dextrose'});
-    result('dResult',[['DEXTROSE STOCK TO ADD',ml(r.additive)],['Carrier volume (approx.)',ml(verified.diluent)],['Final prepared volume',ml(verified.volume)],['Verified displayed preparation',format(verified.concentration)+'%']],[`Stock volume: ${volume} × (${target} − ${base}) ÷ (${stock} − ${base}) = ${format(r.additive,6)} mL.`,`Carrier volume: ${volume} − ${format(r.additive,6)} = ${format(r.carrier,6)} mL.`,`Verification: (${format(r.additive,6)} × ${stock} + ${format(r.carrier,6)} × ${base}) ÷ ${volume} = ${format(r.verified,3)}%.`],(target>5||verified.concentration>5?'Selected/displayed concentration is above 5%; review central access per AAHA. ':'')+'Dilute to the stated final volume; carrier volume is approximate. '+verified.note);
+    result('dResult',[['DEXTROSE ADDITIVE TO ADD',ml(r.additive)],['Carrier volume (approx.)',ml(verified.diluent)],['Final prepared volume',ml(verified.volume)],['Verified displayed preparation',format(verified.concentration)+'%']],[`Additive volume: ${volume} × (${target} − ${base}) ÷ (${stock} − ${base}) = ${format(r.additive,6)} mL.`,`Carrier volume: ${volume} − ${format(r.additive,6)} = ${format(r.carrier,6)} mL.`,`Verification: (${format(r.additive,6)} × ${stock} + ${format(r.carrier,6)} × ${base}) ÷ ${volume} = ${format(r.verified,3)}%.`],(target>5||verified.concentration>5?'Selected/displayed concentration is above 5%; review central access per AAHA. ':'')+'Dilute to the stated final volume; carrier volume is approximate. '+verified.note);
   });
 }
 function updateSodium(){
@@ -93,7 +102,7 @@ function updateSodium(){
       const stock=Number(ReferenceNumbers.volume(r.stockMl)),finalVolume=volume+stock,actual=(volume*fluid.base+stock*1232)/finalVolume;
       e('nBolus'+i+j).textContent='+'+ml(r.stockMl);if(i===0)saline.push(format(actual));
     }));
-    const formula=document.createElement('p');formula.textContent='All fluids: added stock = base volume × (target Na − base Na) ÷ (1232 − target Na). Final volume = base volume + stock. Check Na = (base volume × base Na + stock × 1232) ÷ final volume.';
+    const formula=document.createElement('p');formula.textContent='All fluids: additive volume = base volume × (target Na − base Na) ÷ (1232 − target Na). Final volume = base volume + additive. Check Na = (base volume × base Na + additive × 1232) ÷ final volume.';
     const example=document.createElement('p');example.textContent=`Saline keeps the workbook’s rough 10/25 mL per liter: displayed mixtures ≈ ${saline[0]} mEq/L / ${saline[1]} mEq/L. Other rows use the shared add-on formula. This differs from replacing carrier in a specified final volume.`;
     e('nBolusMath').replaceChildren(formula,example);e('nBolusError').textContent='';
   }catch(error){for(let i=0;i<3;i++)for(let j=0;j<2;j++)e('nBolus'+i+j).textContent='— mL';e('nBolusMath').replaceChildren();e('nBolusError').textContent=error.message;}
@@ -104,7 +113,7 @@ function updateSodium(){
     result('nWater',[['Estimated correction time',format(r.hours,1)+' hr'],['Estimated free-water deficit · D5W',format(r.liters*1000,1)+' mL'],['D5W rate (estimated)',format(r.mlPerHour,2)+' mL/hr'],['Planned average Na decrease',format(r.correction,3)+' mEq/L/hr'],['Planned change in first 24 hr',format(r.dayChange,1)+' mEq/L']],[`Free water: 0.6 × ${p.weight} × (${p.current}/${p.target} − 1) ≈ ${ReferenceNumbers.format(r.liters,8)} L.`,`Duration: ${p.customHours!==null?'custom '+p.customHours+' hr':p.type==='acute'?`${p.current} − ${p.target} divided by 1 mEq/L/hr ≈ ${format(r.hours)} hr (existing acute reference).`:`max((${p.current} − ${p.target}) ÷ 0.5, (${p.current} − ${p.target}) × 24 ÷ ${p.dailyLimit}) ≈ ${format(r.hours)} hr`}.`,r.hours===0?'Current sodium equals the target: no free-water deficit or replacement rate is calculated.':`Rate: ${format(r.liters*1000,6)} mL ÷ ${format(r.hours,3)} hr ≈ ${format(r.mlPerHour,3)} mL/hr.`,r.hours===0?'No decline planned: average change 0 mEq/L/hr.':`Average decline: (${p.current} − ${p.target}) ÷ ${format(r.hours)} hr ≈ ${format(r.correction)} mEq/L/hr.`,`First 24 hr: min(${p.current-p.target}, ${ReferenceNumbers.format(r.correction,8)} × 24) ≈ ${format(r.dayChange)} mEq/L.`],(r.dailyWarning?`Caution: custom duration exceeds the selected ${p.dailyLimit} mEq/L per 24-hour chronic ceiling. Increase hours or reassess the plan. `:'')+'D5W-only planning estimate; not a measured-response prediction or a crystalloid rate. Do not automatically add this to the full dehydration deficit or existing fluid plan.');
   });
   const fluids=[{name:'LRS',na:130,k:4},{name:'Plasma-Lyte',na:140,k:5},{name:'0.9% NaCl',na:154,k:0}];
-  const stockLabel=({'1232':'7.2% NaCl','1283':'7.5% NaCl','513':'3% NaCl','0':'Sodium-free replacement (D5W)'})[e('nPreset').value] || `Custom stock (${e('nStock').value||'—'} mEq/L Na)`;
+  const stockLabel=({'1232':'7.2% NaCl','1283':'7.5% NaCl','513':'3% NaCl','0':'Sodium-free replacement (D5W)'})[e('nPreset').value] || `Custom additive (${e('nStock').value||'—'} mEq/L Na)`;
   fluids.forEach((fluid,i)=>{
     e('nCardStockLabel'+i).textContent='';e('nCardStockName'+i).textContent='';e('nCardFinal'+i).textContent='';
     try{
@@ -116,7 +125,7 @@ function updateSodium(){
       e('nCardCarrier'+i).textContent=`to ${ml(verified.diluent)} of ${fluid.name}.`;
       e('nCardFinal'+i).textContent=`Final prepared volume: ${ml(verified.volume)}`;
       const instruction=Number(e('nStock').value)===fluid.na?'Use carrier only.':`If starting with a full ${ml(verified.volume)} bag, remove ${ml(verified.drug)} before adding ${stockLabel}.`;
-      e('nCardNote'+i).textContent=`${instruction} Mixture Na ≈ ${PreparationCheck.concentration(verified.concentration)} mEq/L; native K ≈ ${format(fluid.k*r.carrier/r.finalVolume)} mEq/L.${verified.changed?' Caution: stock volume is rounded.':''}`;
+      e('nCardNote'+i).textContent=`${instruction} Mixture Na ≈ ${PreparationCheck.concentration(verified.concentration)} mEq/L; native K ≈ ${format(fluid.k*r.carrier/r.finalVolume)} mEq/L.${verified.changed?' Caution: additive volume is rounded.':''}`;
 
       document.querySelector(`[data-base="${fluid.na}"]`).disabled=false;
     }catch(error){e('nCardMl'+i).textContent='Not achievable';e('nCardCarrier'+i).textContent='No preparation available.';e('nCardNote'+i).textContent=error.message;document.querySelector(`[data-base="${fluid.na}"]`).disabled=true;}
@@ -128,7 +137,7 @@ function updateSodium(){
     const p={volume:number('nVolume'),target:number('nFluidGoal'),base:number('nBase'),stock:number('nStock')},r=mixFinal(p);
     const verified=PreparationCheck.mixture({stockVolume:r.additive,...p,unit:'mEq/L Na'});
     e('hFluidNa').value=String(r.verified);e('nSelectedFluid').textContent=`Selected: ${e('nFluidName').value}. Prepared fluid Na: ${format(r.verified,1)} mEq/L.`;
-    result('nMix',[[stockLabel+' TO ADD',ml(r.additive)],['Base fluid selected',e('nFluidName').value],['Carrier volume (approx.)',ml(verified.diluent)],['Final prepared volume',ml(verified.volume)],['Verified displayed FLUID sodium',format(verified.concentration)+' mEq/L']],[p.base===p.stock?'Carrier and stock equal the requested concentration; use carrier only.':`Stock before display rounding: ${p.volume} × (${p.target} − ${p.base}) ÷ (${p.stock} − ${p.base}) ≈ ${ReferenceNumbers.format(r.additive,8)} mL.`,`Displayed preparation: ${verified.volume} − ${verified.drug} = ${ReferenceNumbers.format(verified.diluent,8)} mL carrier.`,`Displayed-mixture check: (${verified.drug} × ${p.stock} + ${ReferenceNumbers.format(verified.diluent,8)} × ${p.base}) ÷ ${verified.volume} ≈ ${PreparationCheck.concentration(verified.concentration)} mEq/L.`],'Replace equal carrier volume, keeping the specified final volume. Response estimates use the unrounded nominal target; verify the displayed mixture first.'+(verified.changed?' Caution: stock volume is rounded; see the concentration check below.':''));
+    result('nMix',[[stockLabel+' TO ADD',ml(r.additive)],['Base fluid selected',e('nFluidName').value],['Carrier volume (approx.)',ml(verified.diluent)],['Final prepared volume',ml(verified.volume)],['Verified displayed FLUID sodium',format(verified.concentration)+' mEq/L']],[p.base===p.stock?'Carrier and additive equal the requested concentration; use carrier only.':`Additive before display rounding: ${p.volume} × (${p.target} − ${p.base}) ÷ (${p.stock} − ${p.base}) ≈ ${ReferenceNumbers.format(r.additive,8)} mL.`,`Displayed preparation: ${verified.volume} − ${verified.drug} = ${ReferenceNumbers.format(verified.diluent,8)} mL carrier.`,`Displayed-mixture check: (${verified.drug} × ${p.stock} + ${ReferenceNumbers.format(verified.diluent,8)} × ${p.base}) ÷ ${verified.volume} ≈ ${PreparationCheck.concentration(verified.concentration)} mEq/L.`],'Replace equal carrier volume, keeping the specified final volume. Response estimates use the unrounded nominal target; verify the displayed mixture first.'+(verified.changed?' Caution: additive volume is rounded; see the concentration check below.':''));
   });
   if(e('hFluidNa').value==='')e('nSelectedFluid').textContent='No valid fluid mixture selected.';
   attempt('nBag',()=>{
@@ -166,6 +175,8 @@ function updateSodium(){
   });
 }
 const updatePage=()=>({magnesium:updateMagnesium,phosphate:updatePhosphate,dextrose:updateDextrose,sodium:updateSodium}[document.body.dataset.tool])();
+// Optional Mg context now sits outside the preparation form.
+if(document.body.dataset.tool==='magnesium')for(const id of ['mBloodwork','mLower','mUpper','mRefractory'])e(id).addEventListener('input',updatePage);
 // Compact layouts keep shared patient fields outside the calculation forms.
 for(const id of ['mWeight','pWeight','nWeight','gSpecies']){
   if(e(id))e(id).addEventListener('input',updatePage);
@@ -203,4 +214,8 @@ if(e('mPump')){
   e('mHours').addEventListener('input',()=>{magnesiumHours=null;});
   e('mHours').form?.addEventListener('reset',()=>{magnesiumHours=null;});
 }
+// Persistent result controls mirror the preparation inputs without rebuilding focus.
+for(const [mirror,source] of [['mResultPump','mPump'],['mResultHours','mHours']])if(e(mirror))e(mirror).addEventListener('input',()=>{
+ e(source).value=e(mirror).value;e(source).dispatchEvent(new Event('input',{bubbles:true}));
+});
 updatePage();

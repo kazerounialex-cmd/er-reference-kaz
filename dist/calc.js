@@ -14,14 +14,14 @@ function calculate({species, weight, dehydration, hours, losses, bolus, mode}) {
 // The clinician selects the target. This function only solves the mixture.
 function calculatePotassium({weight, target, fluidRate, volume, stock, otherK, method}) {
   if (![weight,target,fluidRate,volume,stock,otherK].every(Number.isFinite)) throw Error('Complete all potassium inputs with valid numbers.');
-  if(weight<=0 || fluidRate<=0 || volume<=0 || stock<=0 || target<0 || otherK<0) throw Error('Weight, fluid rate, volume, and stock concentration must be positive. Potassium rates cannot be negative.');
+  if(weight<=0 || fluidRate<=0 || volume<=0 || stock<=0 || target<0 || otherK<0) throw Error('Weight, fluid rate, volume, and additive concentration must be positive. Potassium rates cannot be negative.');
   if(!['final','add'].includes(method)) throw Error('Choose a preparation method.');
   if(target>0.5) throw Error('Target exceeds this tool’s 0.5 mEq/kg/hr limit. No preparation calculated.');
   if(otherK>target) throw Error('Other potassium infusions already exceed the selected target.');
   const desiredConcentration=(target-otherK)*weight/fluidRate; // mEq/mL in this bag
   const base=0; // Carrier potassium is intentionally excluded at the owner’s request.
   if(desiredConcentration<base-1e-12) throw Error('Other infusions exceed the supplemental potassium target.');
-  if(stock<=base || stock<=desiredConcentration) throw Error('Stock must be more concentrated than the target mixture.');
+  if(stock<=base || stock<=desiredConcentration) throw Error('Additive must be more concentrated than the target mixture.');
   const additive=volume*Math.max(0,desiredConcentration-base)/(method==='final'?stock-base:stock-desiredConcentration);
   if(method==='final' && additive>=volume) throw Error('The required additive does not fit within the final volume.');
   const diluent=method==='final'?volume-additive:volume;
