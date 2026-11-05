@@ -131,3 +131,9 @@ The original stronger navigation accents are retained, with pale category-colore
 The top KCl box defaults to the current patient's verified KCl contribution (excluding K already credited from other infusions). Concurrent use must be confirmed before it enters the selected KPhos total. Manual overrides and confirmation persist in this tab; **Use KCl calculator** reconnects, and **New patient** clears them. Invalid/stale linked rates clear dependent preparation results while confirmed. The older full source reconciliation remains optional below. The combined phosphate/K limit remains 0.5 mEq/kg/hr.
 
 `scripts/phosphate-kcl-layout.py` maintains the layout after generation; `dist/phosphate-kcl.js` owns the link/override state. Run `ER_REFERENCE_TEST_URL=http://127.0.0.1:8000 node scripts/check-phosphate-kcl-browser.cjs` for the optional real-browser regression covering navigation, exact totals, no double counting, local override/relink, confirmation, changed/invalid source, patient reset and the 0.2 mEq/mL peripheral boundary.
+
+## Magnesium daily references
+
+The clinician-selected choices are 1.0 mEq/kg/day generally and 0.5 mEq/kg/day for azotemic patients. These are mEq, not mg. Optional total-Mg context does not choose a dose; the existing above-interval guard remains active. The potassium page links directly to magnesium preparation for refractory hypokalemia at the dose-rate limit.
+
+`scripts/simple-magnesium.py` maintains this layout after generation. With a local server running, `ER_REFERENCE_TEST_URL=http://127.0.0.1:8000 node scripts/check-magnesium-reference-browser.cjs` checks independent preparation amounts, duration scaling, optional lab updates, the high-Mg guard, mobile navigation and print generation. Software checks do not establish clinical validation.

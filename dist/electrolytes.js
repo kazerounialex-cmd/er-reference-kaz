@@ -46,16 +46,20 @@ function updateMagnesium(){
   try{
     const lower=number('mLower'),upper=number('mUpper');
     if(lower<=0||upper<=lower)throw Error('Check the bloodwork reference limits.');
-    e('mBand0').textContent=`Below ${lower} mg/dL — higher workbook option`;
-    e('mBand1').textContent=`${lower}–${upper} mg/dL + refractory K — lower workbook option`;
-    if(e('mBloodwork').value.trim()==='')e('mInterpretation').textContent=`Total Mg below ${lower} mg/dL: review 1 mEq/kg/day. Within ${lower}–${upper} with refractory K: review 0.5. Above ${upper}: neither workbook replacement option applies.`;
+    e('mBand0').textContent='Usual reference · iMg unavailable';
+    e('mBand1').textContent='Azotemic patient · lower reference';
+    if(e('mBloodwork').value.trim()==='')e('mInterpretation').textContent='Total Mg context is optional and does not select a dose. Usual reference: 1.0 mEq/kg/day; azotemic reference: 0.5 mEq/kg/day.';
     else{
       context=magnesiumContext({value:number('mBloodwork'),lower,upper,refractory:e('mRefractory').value==='yes'});
-      e('mInterpretation').textContent=context.band==='low'?`LOW total Mg relative to entered lab limits. Matching workbook option: higher dose, 1 mEq/kg/day. Select explicitly below.`:context.band==='high'?`HIGH total Mg relative to entered lab limits. Neither workbook replacement option applies; reassess before supplementation.`:context.workbookDose===.5?`WITHIN lab interval, with refractory K selected. Matching workbook option: lower dose, 0.5 mEq/kg/day.`:`WITHIN lab interval. The 0.5 workbook option also requires refractory hypokalemia; normal Mg alone does not establish an indication.`;
+      e('mInterpretation').textContent=context.band==='low'?'LOW total Mg relative to the entered interval. Dose selection remains clinical; use the lower reference for azotemic patients.':context.band==='high'?'HIGH total Mg relative to entered lab limits. Neither replacement option applies; reassess before supplementation.':'WITHIN the entered total-Mg interval. This does not establish ionized Mg status or automatically select a dose.';
     }
   }catch(error){contextError=error.message;e('mInterpretation').textContent=contextError;}
-  e('mContext0').setAttribute('data-context-match',String(context?.workbookDose===1));
-  e('mContext1').setAttribute('data-context-match',String(context?.workbookDose===.5));
+  e('mContext0').setAttribute('data-context-match',String(e('mDose').value!==''&&Number(e('mDose').value)===1));
+  e('mContext1').setAttribute('data-context-match',String(e('mDose').value!==''&&Number(e('mDose').value)===.5));
+  if(e('mPrimaryStatus')){
+    const warning=contextError||(context?.band==='high'?'Entered total Mg is above the lab interval. Replacement options are unavailable; review the lab context below.':'');
+    e('mPrimaryStatus').textContent=warning;e('mPrimaryStatus').hidden=!warning;
+  }
   const run=dailyDose=>{if(contextError)throw Error(contextError);if(context?.band==='high')throw Error('Current total Mg is above the entered interval; neither workbook replacement option applies.');return magnesium({weight:number('mWeight'),hours:number('mHours'),volume:number('mVolume'),stock:number('mStock'),dailyDose});};
   chart([[1],[.5]],run,(i,values)=>{e('mAmount'+i).textContent=values[0]?format(values[0].amount)+' mEq':'—';e('mMl'+i).textContent=values[0]?ml(values[0].additive):'— mL';},'mDose');
   attempt('mResult',()=>{
@@ -170,6 +174,8 @@ function updateSodium(){
   });
 }
 const updatePage=()=>({magnesium:updateMagnesium,phosphate:updatePhosphate,dextrose:updateDextrose,sodium:updateSodium}[document.body.dataset.tool])();
+// Optional Mg context now sits outside the preparation form.
+if(document.body.dataset.tool==='magnesium')for(const id of ['mBloodwork','mLower','mUpper','mRefractory'])e(id).addEventListener('input',updatePage);
 // Compact layouts keep shared patient fields outside the calculation forms.
 for(const id of ['mWeight','pWeight','nWeight','gSpecies']){
   if(e(id))e(id).addEventListener('input',updatePage);

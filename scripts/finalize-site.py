@@ -48,3 +48,5 @@ runpy.run_path(str(Path(__file__).resolve().parent / 'chocolate-source-record.py
 runpy.run_path(str(Path(__file__).resolve().parent / 'additive-terminology.py'))
 
 runpy.run_path(str(Path(__file__).resolve().parent / 'phosphate-kcl-layout.py'))
+
+runpy.run_path(str(Path(__file__).resolve().parent / 'simple-magnesium.py'))

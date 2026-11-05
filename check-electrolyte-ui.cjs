@@ -50,7 +50,7 @@ for(const invalid of ['', '0', '-1']){
 }
 page.fill({mVolume:24,mHours:12});
 page.fill({mBloodwork:1.2});assert.match(page.ids.mInterpretation.textContent,/LOW/);assert.equal(page.ids.mContext0.attrs['data-context-match'],'true');
-page.fill({mBloodwork:2,mRefractory:'yes'});assert.match(page.ids.mInterpretation.textContent,/0.5/);assert.equal(page.ids.mContext1.attrs['data-context-match'],'true');
+page.fill({mBloodwork:2,mRefractory:'yes'});assert.match(page.ids.mInterpretation.textContent,/does not establish ionized Mg status/);assert.equal(page.ids.mContext1.attrs['data-context-match'],'false');assert.equal(page.ids.mDose.value,'1');page.pick('mDose',.5);assert.equal(page.ids.mContext1.attrs['data-context-match'],'true');
 page.fill({mBloodwork:3});assert.ok(page.select('.lyte-rate').every(b=>b.disabled));assert.equal(page.ids.mResultMath.open,false);
 page.fill({mBloodwork:'',mRefractory:'unknown'});
 let button=page.select('[data-lock]')[0];button.listeners.click();assert.equal(page.ids.mStock.readOnly,false);
