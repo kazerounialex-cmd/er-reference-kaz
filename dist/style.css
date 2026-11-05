@@ -496,3 +496,19 @@ body.blood-compact{background:#f4ecef}.blood-compact .blood-results .metric{bord
 #magnesiumDoseOptions .lyte-rate{min-height:44px}#magnesiumDoseOptions [data-target="mDose"][data-value="1"]{border:2px solid #246d70;font-weight:800}
 
 .k-concentration-values{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px 12px;text-align:right}
+
+/* A fixed unit suffix shares the input boundary without entering its value. */
+.unit-input{position:relative;display:block!important;float:none!important;width:100%;margin-top:7px;color:inherit;font-weight:inherit}
+.unit-input>input[type=number],.unit-input>select{width:100%!important;margin-top:0!important;padding-right:calc(var(--unit-width) + 10px)!important;appearance:textfield}
+.unit-input>input::-webkit-inner-spin-button,.unit-input>input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.unit-input>.unit-input-suffix{position:absolute;right:10px;top:50%;transform:translateY(-50%);float:none;pointer-events:none;color:var(--tone-526b78);font-size:12px;font-weight:500;white-space:nowrap;line-height:1.2;background:transparent}
+.shared-fluid-top>.unit-input{flex:1;min-width:0;margin-top:0}
+.os-cell>.unit-input{margin:0;height:100%}.os-cell .unit-input-suffix{font-size:9px;right:3px}
+@media print{.unit-input-suffix{color:#172e3b!important}}
+
+.unit-input>select{margin-top:0!important;padding-right:calc(var(--unit-width) + 30px)!important}
+.unit-select>.unit-input-suffix{right:28px}
+.shared-fluid-top>.unit-input{flex:0 1 150px;min-width:125px}
+#sodiumQuickReference label>.unit-input{width:160px;flex:0 1 160px}
+.unit-input>input[type=number]{max-width:none}
+.drug-table .unit-input{max-width:180px;min-width:180px}.drug-table .unit-input-suffix{font-size:10px}

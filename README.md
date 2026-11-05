@@ -137,3 +137,7 @@ The top KCl box defaults to the current patient's verified KCl contribution (exc
 The clinician-selected choices are 1.0 mEq/kg/day generally and 0.5 mEq/kg/day for azotemic patients. These are mEq, not mg. Optional total-Mg context does not choose a dose; the existing above-interval guard remains active. The potassium page links directly to magnesium preparation for refractory hypokalemia at the dose-rate limit.
 
 `scripts/simple-magnesium.py` maintains this layout after generation. With a local server running, `ER_REFERENCE_TEST_URL=http://127.0.0.1:8000 node scripts/check-magnesium-reference-browser.cjs` checks independent preparation amounts, duration scaling, optional lab updates, the high-Mg guard, mobile navigation and print generation. Software checks do not establish clinical validation.
+
+## Fixed input units
+
+`dist/input-units.js` places existing field units inside a non-editable suffix, leaving numeric values, field IDs and calculation listeners intact. It also handles newly added rows and selected chocolate/drug units. `scripts/input-units.py` attaches the shared script after page generation. Labels retain units for accessibility; unit selectors keep their existing behavior. Run `ER_REFERENCE_TEST_URL=http://127.0.0.1:8000 node scripts/check-input-units-browser.cjs` for desktop/mobile suffix bounds, numeric entry, selected-unit changes and print generation.

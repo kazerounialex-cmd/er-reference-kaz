@@ -11,7 +11,7 @@ if(tool==='norepinephrine'){
 function concentrationError(message){$('prepConcentration').setAttribute('aria-invalid','true');$('norepiConcentrationError').hidden=false;$('norepiConcentrationError').textContent='CONCENTRATION ERROR — '+message;throw Error(message);}
 function update(){
  if(tool==='norepinephrine'){$('prepConcentration').setAttribute('aria-invalid','false');$('norepiConcentrationError').hidden=true;$('norepiConcentrationError').textContent='';$('printNorepiChart').disabled=true;$('norepiChartTable').innerHTML='';$('norepiChartMeta').textContent='Enter a valid preparation to generate the chart.';}
- if(tool==='norepinephrine'){const target=$('prepMode').value==='target';$('prepConcentration').readOnly=target;$('targetPump').disabled=false;$('targetPump').readOnly=!target;$('targetPump').parentElement.firstChild.textContent=target?'Target preparation pump rate · mL/hr':'Current calculated pump rate · mL/hr · locked';if(!target)$('targetPump').value='';if(target)$('prepConcentration').value='';}
+ if(tool==='norepinephrine'){const target=$('prepMode').value==='target';$('prepConcentration').readOnly=target;$('targetPump').disabled=false;$('targetPump').readOnly=!target;($('targetPump').closest?.('label')||$('targetPump').parentElement).firstChild.textContent=target?'Target preparation pump rate · mL/hr':'Current calculated pump rate · mL/hr · locked';if(!target)$('targetPump').value='';if(target)$('prepConcentration').value='';}
  const cat=tool==='lidocaine'&&$('species').value==='Cat';
  if(tool==='lidocaine'){$('catLidocaineWarning').hidden=!cat;['criDose','prepHours','prepPump','prepCapacity','criStock','criLock'].forEach(id=>$(id).disabled=cat);}
  $('prepResult').innerHTML='';

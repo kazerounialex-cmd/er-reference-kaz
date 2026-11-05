@@ -4,7 +4,7 @@ $('criStock').readOnly=true;
 $('criLock').onclick=()=>{const f=$('criStock');f.readOnly=!f.readOnly;$('criLock').textContent=f.readOnly?'Edit concentration':'Lock concentration';};
 $('normalizeFent').onclick=()=>{try{CriCalc.positive(n('weight'));put('fentConcentration',n('weight'));update('fentConcentration');}catch(e){$('fentResult').textContent=e.message;$('fentMath').textContent='';}};
 function update(edited){
- $('fentPump').parentElement.firstChild.textContent='Pump rate for selected dose · mL/hr';
+ ($('fentPump').closest?.('label')||$('fentPump').parentElement).firstChild.textContent='Pump rate for selected dose · mL/hr';
  $('fentResult').innerHTML='';$('fentMath').textContent='';
  try{
  if(!['Dog','Cat'].includes($('species').value))throw Error('Select species in the shared banner.');
@@ -17,7 +17,7 @@ function update(edited){
  }else{
  pump=CriCalc.rate(weight,dose,concentration,'mcg/kg/hr');put('fentPump',pump);
  }
- $('fentPump').parentElement.firstChild.textContent=`Pump rate for ${show(dose)} mcg/kg/hr · mL/hr`;
+ ($('fentPump').closest?.('label')||$('fentPump').parentElement).firstChild.textContent=`Pump rate for ${show(dose)} mcg/kg/hr · mL/hr`;
  CriCalc.positive(volume,pump,concentration,n('fentCapacity'));const hours=volume/pump;CriCalc.positive(hours);put('fentHours',hours);
  if(volume>n('fentCapacity'))throw Error('Final volume exceeds syringe capacity. Shorten the run time, reduce final volume or select a suitable larger syringe.');
  const mix=CriCalc.mix(stock,concentration,volume);
