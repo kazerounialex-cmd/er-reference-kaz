@@ -10,11 +10,11 @@ if not r.all(lambda n:n.attrs.get('id')=='kPeripheralWarning'):
  target=r.byid('kAdd')
  while target.parent is not panel:target=target.parent
  panel.add(notice,panel.children.index(target))
- label=r.byid('kConcentration').parent.one(lambda n:n.tag=='span');label.children=['Added KCl concentration · mEq/mL']
 # Use a small monitoring note beside the concentration, rather than an alert
 # above the main preparation result. Apply to existing and regenerated pages.
 box=r.byid('kPeripheralWarning');box.attrs['role']='status'
 concentration=r.byid('kConcentration');line=concentration.parent
+while not line.cls('line'):line=line.parent
 line.parent.add(box,line.parent.children.index(line)+1)
 if not box.all(lambda n:n.tag=='details'):
  help=box.one(lambda n:n.tag=='p' and n.cls('help'))
@@ -23,4 +23,22 @@ if not box.all(lambda n:n.tag=='details'):
  details.add(help)
 help=box.one(lambda n:n.tag=='p' and n.cls('help'))
 help.children[0]='Clinician-selected peripheral KCl concentration limit: 0.2 mEq/mL (200 mEq/L). This is separate from the dose-rate limits and is not attributed to the references below. Added KCl only; native carrier potassium is excluded. '
+p.write_text(r.render())
+
+# Keep preparation strength beside the main additive amount, ahead of details.
+primary=r.byid('kAdd').parent
+parent=primary.parent
+added=r.byid('kAddedMEq').parent
+concentration=r.byid('kConcentration')
+line=concentration.parent
+while not line.cls('line'):line=line.parent
+label=line.one(lambda n:n.tag=='span');label.children=['Added KCl concentration']
+if not r.all(lambda n:n.attrs.get('id')=='kConcentrationL'):
+ concentration.remove()
+ values=line.add(N('span',[('class','k-concentration-values')]))
+ values.add(concentration)
+ values.add(N('b',[('id','kConcentrationL')],children=['—']))
+for offset,node in enumerate([added,line,box],1):
+ node.remove()
+ parent.add(node,parent.children.index(primary)+offset)
 p.write_text(r.render())

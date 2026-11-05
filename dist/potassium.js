@@ -4,7 +4,7 @@ const get=id=>document.getElementById(id);
 const kFormat=n=>ReferenceNumbers.display(n);
 const kVolume=n=>ReferenceNumbers.volume(n);
 const bands=[[.5],[.3,.4],[.2,.25],[.1,.15],[.05]];
-const outputIds=['kAdd','kDiluent','kFinalVolume','kAddedMEq','kConcentration','kHours','kDelivered'];
+const outputIds=['kAdd','kDiluent','kFinalVolume','kAddedMEq','kConcentration','kConcentrationL','kHours','kDelivered'];
 function readBase(){
  const fields=['kWeight','kRate','kVolume','kStock','kOther'];
  if(fields.some(id=>get(id).value.trim()==='' || !get(id).checkValidity()))throw Error('Enter valid weight, fluid rate, volume, additive concentration, and separate K rate.');
@@ -101,6 +101,7 @@ function updatePotassium(){
   if(get('kPump'))get('kPump').textContent=ReferenceNumbers.display(p.fluidRate)+' mL/hr';
   get('kAdd').textContent=kVolume(r.additive);
   for(const [id,value,unit] of [['kDiluent',verified.diluent,'mL'],['kFinalVolume',verified.volume,'mL'],['kAddedMEq',verified.amount,'mEq'],['kConcentration',verified.concentration,'mEq/mL'],['kHours',verified.hours,'hr'],['kDelivered',verified.delivered,'mEq/kg/hr']])get(id).textContent=(unit==='mEq/kg/hr'?value.toFixed(4):unit==='mEq/mL'?ReferenceNumbers.display(value):(unit==='mL'?kVolume(value):['mEq/kg/hr','mEq'].includes(unit)?ReferenceNumbers.display(value):kFormat(value,3)))+' '+unit;
+  get('kConcentrationL').textContent=ReferenceNumbers.display(verified.concentration*1000)+' mEq/L';
   get('kStatus').textContent=method==='final'?`Selected ${p.target} mEq/kg/hr. Remove ${kVolume(r.additive)} mL carrier and replace with the same volume of KCl additive.`:`Selected ${p.target} mEq/kg/hr. Add ${kVolume(r.additive)} mL KCl additive to the measured starting carrier volume.`;
   if(verified.deliveryWarning)get('kStatus').textContent+=' '+potassiumRoundingMessage(verified);
   get('kStatus').textContent+=' Check measurement feasibility, especially for very small additive volumes; verify equipment precision and use a clinician-approved dilution if needed. No dilution recipe is assumed.';

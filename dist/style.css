@@ -494,3 +494,5 @@ body.blood-compact{background:#f4ecef}.blood-compact .blood-results .metric{bord
 #magnesiumDoseOptions,#magnesiumPreparation{scroll-margin-top:calc(var(--patient-header-height,110px) + 12px)}.k-magnesium-reference{padding:8px 10px;border-left:3px solid #246d70;background:#edf7f5;font-size:13px;line-height:1.5}.k-magnesium-reference a{font-weight:700}.compact-mg-context>summary{font-weight:700;margin-bottom:10px}
 
 #magnesiumDoseOptions .lyte-rate{min-height:44px}#magnesiumDoseOptions [data-target="mDose"][data-value="1"]{border:2px solid #246d70;font-weight:800}
+
+.k-concentration-values{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px 12px;text-align:right}
