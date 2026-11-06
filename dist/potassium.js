@@ -7,7 +7,8 @@ const bands=[[.5],[.3,.4],[.2,.25],[.1,.15],[.05]];
 const outputIds=['kAdd','kDiluent','kFinalVolume','kAddedMEq','kConcentration','kConcentrationL','kHours','kDelivered'];
 function readBase(){
  const fields=['kWeight','kRate','kVolume','kStock','kOther'];
- if(fields.some(id=>get(id).value.trim()==='' || !get(id).checkValidity()))throw Error('Enter valid weight, fluid rate, volume, additive concentration, and separate K rate.');
+ const invalid=fields.find(id=>get(id).value.trim()==='' || !get(id).checkValidity());
+ if(invalid)throw Error('Enter a valid '+({kWeight:'patient weight (kg)',kRate:'fluid rate (mL/hr)',kVolume:'preparation volume (mL)',kStock:'KCl additive concentration (mEq/mL)',kOther:'separate K rate (mEq/kg/hr)'}[invalid])+'.');
  return {weight:Number(get('kWeight').value),fluidRate:typeof FluidReferenceNumbers==='undefined'?Number(get('kRate').value):FluidReferenceNumbers.value(get('kRate')),volume:Number(get('kVolume').value),stock:Number(get('kStock').value),otherK:Number(get('kOther').value),method:get('kMethod').value};
 }
 function potassiumRoundingMessage(prepared,blocked=false){
@@ -17,7 +18,7 @@ function potassiumRoundingMessage(prepared,blocked=false){
  else note+=' Review additive volume.';
  return note;
 }
-function renderChart(base){
+function renderChart(base,baseError=''){
  let available=0;
  bands.forEach((rates,i)=>{
   const reasons=[];
@@ -30,7 +31,7 @@ function renderChart(base){
    if(error.code==='POTASSIUM_DISPLAY_LIMIT'){
     reason=potassiumRoundingMessage(error.preparation,true);
    }
-   reasons[j]=base?(error.code==='POTASSIUM_DISPLAY_LIMIT'?reason:'Unavailable — '+reason):'';
+   reasons[j]=base?(error.code==='POTASSIUM_DISPLAY_LIMIT'?reason:'Unavailable — '+reason):(baseError||'Enter weight, fluid rate and preparation volume.');
    return null;
   }});
   get('kEq'+i).textContent=values.map(v=>v?ReferenceNumbers.display(v.addedMEq)+' mEq':'—').join(' – ');
@@ -90,7 +91,7 @@ function updatePotassium(){
  get('kMethodHelp').textContent=method==='final'?'Volume means the final total: remove the calculated KCl volume from measured carrier, then replace with KCl.':'Volume means the measured starting carrier: added KCl increases the final total.';
  get('kStockDisplay').textContent=get('kStock').value || '—';
  let base;
- try{base=readBase();}catch{renderChart(null);clearSelected('Complete the patient and fluid inputs, then choose a rate.');return;}
+ try{base=readBase();}catch(error){renderChart(null,error.message);clearSelected(error.message);return;}
  renderChart(base);
  if(get('kTarget').value.trim()==='' || !get('kTarget').checkValidity()){clearSelected('Choose a rate from the chart, or enter a custom rate from 0–0.5 mEq/kg/hr.');return;}
  try{

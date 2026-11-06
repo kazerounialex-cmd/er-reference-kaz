@@ -99,7 +99,7 @@ const {chromium}=require('playwright');
  await fill('kOther',0);await fill('masterWeight',1);await fill('kVolume',1000);await fill('kRate',500/501);
  assert.equal(await maxRate.isEnabled(),true);assert.equal(await text('kDelivered'),'0.5010 mEq/kg/hr');
  await fill('kRate',500/501.2);assert.equal(await maxRate.isDisabled(),true);assert.equal(await text('kAdd'),'—');
- await fill('kVolume','');assert.equal(await roundingReason.isVisible(),false);
+ await fill('kVolume','');assert.equal(await roundingReason.isVisible(),true);assert.match(await roundingReason.innerText(),/preparation volume/);assert.doesNotMatch(await roundingReason.innerText(),/Rounding warning/);
  // Visit every page to exercise actual navigation scripts and layout at two widths.
  const files=require('node:fs').readdirSync('dist').filter(f=>f.endsWith('.html'));
  for(const width of [1440,390]){
