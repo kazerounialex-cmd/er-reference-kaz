@@ -15,6 +15,7 @@ function updateBlood(){
     b('bMath').textContent=`Baseline: ${p.weight} kg × ${p.volumePerKg} mL/kg = ${bloodFormat(r.baseline)} mL. After ${p.reductionPercent}% reduction: ${bloodFormat(r.estimated)} mL. ${p.dayPercent}% = ${bloodFormat(r.day)} mL / 24 hr; ${p.fortnightPercent}% = ${bloodFormat(r.fortnight)} mL / 14 days.`;
   }catch(error){for(const id of ['bTotal','bDay','bFortnight'])b(id).textContent='—';b('bStatus').textContent=error.message;b('bMath').textContent='';}
   for(const id of ['bPrint','bDownload','bCSV'])b(id).disabled=!r;
+  if(!r)b('bExportStatus').textContent='Export unavailable: '+b('bStatus').textContent;else if(b('bExportStatus').textContent.startsWith('Export unavailable:'))b('bExportStatus').textContent='';
   const preview=cageSheetDocument(p,r).replace(/<div class="print-toolbar">[\s\S]*?<\/div>/,'');
   if(b('bPreview').srcdoc!==preview)b('bPreview').srcdoc=preview;
 }

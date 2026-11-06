@@ -61,9 +61,12 @@ page=loadPage('phosphate.html');page.fill({pWeight:10,pRate:40,pVolume:1000});
 page.pick('pDose',.06);assert.match(page.text('pResult'),/0.09 mEq\/kg\/hr/);assert.equal(page.ids.pKRateHero.textContent,'0.09');assert.equal(page.ids.pKHourlyHero.textContent,'0.88');assert.equal(page.ids.pKAmountHero.textContent,'22.0');
 page.fill({pKStock:2});assert.match(page.text('pResult'),/0.04 mEq\/kg\/hr/);
 page.fill({pOtherK:.6});assert.ok(page.select('.lyte-rate').every(b=>b.disabled));assert.match(page.text('pResult'),/exceeds/);assert.equal(page.ids.pResultMath.open,false);assert.equal(page.ids.pKRateHero.textContent,'—');
+assert.match(page.ids.phosphateUnavailable0.textContent,/Unavailable:.*exceeds 0.5/);
+page.ids.pOverrideK.checked=true;page.update();assert.ok(page.select('.lyte-rate').every(b=>!b.disabled));assert.match(page.text('pResult'),/Warning: clinician override active/);
+page.fill({pVolume:500});assert.equal(page.ids.pOverrideK.checked,false);assert.ok(page.select('.lyte-rate').every(b=>b.disabled));
 page=loadPage('dextrose.html');page.fill({dVolume:1000});assert.equal(page.ids.dMl1.textContent,'50.0 mL');
 page.pick('dTarget',2.5);assert.match(page.text('dResult'),/50\.0 mL/);assert.equal(page.ids.dResultMath.open,false);
-page.fill({dStock:1,dBase:5});assert.ok(page.select('.lyte-rate').every(b=>b.disabled));assert.equal(page.ids.dResultMath.open,false);
+page.fill({dStock:1,dBase:5});assert.match(page.ids.dextroseUnavailable0.textContent,/additive must exceed carrier/);assert.ok(page.select('.lyte-rate').every(b=>b.disabled));assert.equal(page.ids.dResultMath.open,false);
 // Approved 10 mEq/L/day ceiling makes the 12 mEq decline take 28.8hr (not 24).
 page=loadPage('sodium.html');assert.equal(page.ids.nDailyLimit.value,'12');page.fill({nDailyLimit:10,nWeight:.47,nCurrent:177,nGoal:165});assert.match(page.text('nWater'),/0.71 mL\/hr/);
 page.fill({nGoal:177});assert.doesNotMatch(page.text('nWaterSteps'),/NaN|Infinity/);assert.match(page.text('nWaterSteps'),/no free-water deficit/);

@@ -48,7 +48,7 @@ if(typeof document!=='undefined')(()=>{
    const weight=Number($('masterWeight').value),flow=FluidReferenceNumbers.value($(current==='kcl'?'kRate':'pRate'));
    if(!['dog','cat'].includes($('masterSpecies').value))throw Error('Choose species');
    const linked=$(current==='kcl'?'kRate':'pRate').getAttribute('data-fluid-linked')==='true';
-   const input=current==='kcl'?{weight,target:numeric('kTarget'),fluidRate:flow,volume:numeric('kVolume'),stock:numeric('kStock'),otherK:numeric('kOther'),method:$('kMethod').value}:{weight,dose:numeric('pDose'),fluidRate:flow,volume:numeric('pVolume'),phosStock:numeric('pStock'),kStock:numeric('pKStock'),otherK:numeric('pOtherK'),method:$('pMethod').value};
+   const input=current==='kcl'?{weight,target:numeric('kTarget'),fluidRate:flow,volume:numeric('kVolume'),stock:numeric('kStock'),otherK:numeric('kOther'),method:$('kMethod').value}:{weight,dose:numeric('pDose'),fluidRate:flow,volume:numeric('pVolume'),phosStock:numeric('pStock'),kStock:numeric('pKStock'),otherK:numeric('pOtherK'),method:$('pMethod').value,overrideTotalK:$('pOverrideK')?.checked===true};
    const value=current==='kcl'?calculatePotassium(input):phosphate(input);
    const verified=current==='kcl'?PreparationCheck.potassium(input,value):PreparationCheck.phosphate(input,value);
    r={valid:true,rate:current==='kcl'?verified.delivered-input.otherK:verified.potassiumRate,other:input.otherK,flow,linked,patient:patient(),signature:JSON.stringify(input),volume:verified.volume};

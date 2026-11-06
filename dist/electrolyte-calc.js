@@ -26,7 +26,7 @@ function magnesium({weight, dailyDose, hours, stock, volume}) {
   if(additive>=volume)throw Error('Final volume must exceed the additive volume so the preparation is diluted.');
   return safeResult({amount,additive,carrier:volume-additive,pump:volume/hours,hourlyDose:dailyDose/24,delivered:amount/hours/weight*24});
 }
-function phosphate({weight,dose,fluidRate,volume,phosStock,kStock,otherK,method}) {
+function phosphate({weight,dose,fluidRate,volume,phosStock,kStock,otherK,method,overrideTotalK=false}) {
   checkNumbers({weight,dose,fluidRate,volume,phosStock,kStock,otherK});
   if(weight<=0 || fluidRate<=0 || volume<=0 || phosStock<=0 || kStock<0 || dose<0 || dose>.12 || otherK<0)throw Error('Use positive weight, flow, volume, and phosphate additive; dose must be 0–0.12 mmol/kg/hr.');
   if(!['final','add'].includes(method))throw Error('Choose a preparation method.');
@@ -36,7 +36,7 @@ function phosphate({weight,dose,fluidRate,volume,phosStock,kStock,otherK,method}
   const carrier=method==='final'?volume-additive:volume, finalVolume=carrier+additive;
   if(dose>0&&(!(additive>0)||!(additive*phosStock>0)))throw Error('Phosphate preparation is below supported numeric precision.');
   const kRate=dose*kStock/phosStock,totalK=kRate+otherK;
-  if(totalK>.5+1e-12)throw Error('Combined entered supplemental K exceeds this tool’s 0.5 mEq/kg/hr limit.');
+  if(totalK>.5+1e-12&&overrideTotalK!==true){const error=Error(`Total K ${totalK.toFixed(4)} mEq/kg/hr exceeds 0.5.`);error.code='PHOSPHATE_TOTAL_K';error.totalK=totalK;throw error;}
   return safeResult({additive,carrier,finalVolume,bagHours:finalVolume/fluidRate,phosphateAmount:additive*phosStock,potassiumAmount:additive*kStock,kRate,totalK,delivered:additive*phosStock/finalVolume*fluidRate/weight});
 }
 function freeWater({weight,current,target,type,customHours}) {

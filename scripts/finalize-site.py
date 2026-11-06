@@ -52,3 +52,5 @@ runpy.run_path(str(Path(__file__).resolve().parent / 'phosphate-kcl-layout.py'))
 runpy.run_path(str(Path(__file__).resolve().parent / 'simple-magnesium.py'))
 
 runpy.run_path(str(Path(__file__).resolve().parent / 'input-units.py'))
+
+runpy.run_path(str(Path(__file__).resolve().parent / 'unavailable-results.py'))

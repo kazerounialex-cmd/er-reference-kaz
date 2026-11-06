@@ -141,3 +141,7 @@ The clinician-selected choices are 1.0 mEq/kg/day generally and 0.5 mEq/kg/day f
 ## Fixed input units
 
 `dist/input-units.js` places existing field units inside a non-editable suffix, leaving numeric values, field IDs and calculation listeners intact. It also handles newly added rows and selected chocolate/drug units. `scripts/input-units.py` attaches the shared script after page generation. Labels retain units for accessibility; unit selectors keep their existing behavior. Run `ER_REFERENCE_TEST_URL=http://127.0.0.1:8000 node scripts/check-input-units-browser.cjs` for desktop/mobile suffix bounds, numeric entry, selected-unit changes and print generation.
+
+## Unavailable results and phosphate exception
+
+See `UNAVAILABLE-RESULTS.md` for the site review and override scope. `scripts/unavailable-results.py` maintains adjacent chart reasons, insulin preset descriptions and the default-off phosphate combined-K override. Missing/invalid values and impossible mixtures cannot be overridden. Run `ER_REFERENCE_TEST_URL=http://127.0.0.1:8000 node scripts/check-unavailable-browser.cjs` for the optional real-browser regression, in addition to the full suite and generator checks.

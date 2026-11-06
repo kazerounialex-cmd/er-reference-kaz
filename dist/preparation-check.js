@@ -38,7 +38,7 @@ const PreparationCheck=(()=>{
  function phosphate(p,r){
   const result=checked({stockVolume:r.additive,stock:p.phosStock,volume:r.finalVolume,carrier:p.method==='add'?p.volume:undefined,pump:p.fluidRate,weight:p.weight,target:p.dose,unit:'mmol/kg/hr'});
   const potassiumAmount=result.drug*p.kStock,potassiumRate=potassiumAmount/result.volume*result.pump/p.weight,totalK=potassiumRate+p.otherK;
-  if(totalK>.5+1e-12)throw Error('Displayed preparation exceeds the existing 0.5 mEq/kg/hr supplemental-potassium limit. Verify all concurrent sources.');
+  if(totalK>.5+1e-12&&p.overrideTotalK!==true){const error=Error(`Displayed total K ${totalK.toFixed(4)} mEq/kg/hr exceeds 0.5.`);error.code='PHOSPHATE_TOTAL_K';error.totalK=totalK;throw error;}
   return {...result,potassiumAmount,potassiumRate,totalK};
  }
  function single({stockVolume,stock,weight,target}){

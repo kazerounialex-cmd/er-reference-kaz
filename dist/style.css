@@ -512,3 +512,6 @@ body.blood-compact{background:#f4ecef}.blood-compact .blood-results .metric{bord
 #sodiumQuickReference label>.unit-input{width:160px;flex:0 1 160px}
 .unit-input>input[type=number]{max-width:none}
 .drug-table .unit-input{max-width:180px;min-width:180px}.drug-table .unit-input-suffix{font-size:10px}
+
+.unavailable-note{display:block;font-size:11px;line-height:1.4;color:#794d13;margin:5px 0 0;font-weight:500;white-space:normal}.unavailable-note[hidden]{display:none}
+.phosphate-limit-override{font-size:12px!important;margin:10px 0 4px;line-height:1.4}.phosphate-limit-override input{width:auto;margin-right:5px}

@@ -159,7 +159,7 @@ elements.kRate.value='55';vm.runInContext('updatePotassium()',ctx);assert.equal(
 // At 50 mL/hr, 30 mL stock delivers exactly 0.5: clear the old warning.
 elements.kRate.value='50';vm.runInContext('updatePotassium()',ctx);assert.equal(buttons.find(b=>b.dataset.rate==='0.5').disabled,false);assert.equal(elements.kRateReason0_0.hidden,true);assert.equal(elements.kRateReason0_0.textContent,'');
 elements.kOther.value='.2';vm.runInContext('updatePotassium()',ctx);assert.match(elements.kRateReason4_0.textContent,/Other potassium infusions already exceed/);
-elements.kWeight.value='';vm.runInContext('updatePotassium()',ctx);assert.equal(elements.kRateReason4_0.hidden,true);assert.equal(elements.kRateReason4_0.textContent,'');
+elements.kWeight.value='';vm.runInContext('updatePotassium()',ctx);assert.equal(elements.kRateReason4_0.hidden,false);assert.match(elements.kRateReason4_0.textContent,/patient weight/);assert.doesNotMatch(elements.kRateReason4_0.textContent,/Other potassium/);
 console.log('Disabled potassium reasons passed: rounding above limit, exact-limit re-enabling, concurrent K conflict and stale-reason clearing.');
 
 // Independently derived reduction: 34.0 × 2 / 500 = 0.136 mEq/mL;

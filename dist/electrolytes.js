@@ -3,14 +3,16 @@ const e=id=>document.getElementById(id);
 const format=n=>ReferenceNumbers.display(n);
 const ml=n=>ReferenceNumbers.volume(n)+' mL';
 let magnesiumHours=null;
+const electrolyteInputNames={mWeight:'patient weight (kg)',pWeight:'patient weight (kg)',nWeight:'patient weight (kg)',mHours:'Mg duration (hr)',mVolume:'Mg preparation volume (mL)',mStock:'Mg additive concentration (mEq/mL)',mDose:'Mg daily dose (mEq/kg/day)',pRate:'fluid rate (mL/hr)',pVolume:'preparation volume (mL)',pStock:'phosphate additive concentration (mmol/mL)',pKStock:'additive potassium concentration (mEq/mL)',pOtherK:'confirmed additional K rate (mEq/kg/hr)',pDose:'phosphate dose (mmol/kg/hr)',dVolume:'final volume (mL)',dBase:'carrier dextrose (%)',dStock:'dextrose additive (%)',dTarget:'target dextrose (%)',nCurrent:'patient sodium (mEq/L)',nGoal:'patient sodium target (mEq/L)',nVolume:'fluid volume (mL)',nFluidGoal:'fluid sodium target (mEq/L)',nBagRate:'bag rate (mL/hr)',nHours:'duration (hr)',gNa:'measured sodium (mEq/L)',gGlucose:'glucose (mg/dL)',hFluidK:'total fluid K (mEq/L)',hRate:'fluid rate (mL/hr)',hHours:'planning interval (hr)',nStock:'replacement sodium (mEq/L)',nBase:'base-fluid sodium (mEq/L)',qVolumeA:'fluid A volume (mL)',qVolumeB:'fluid B volume (mL)',qNaA:'fluid A sodium (mEq/L)',qNaB:'fluid B sodium (mEq/L)',mLower:'lab lower Mg limit (mg/dL)',mUpper:'lab upper Mg limit (mg/dL)',mBloodwork:'total Mg (mg/dL)',hFluidNa:'selected fluid sodium (mEq/L)'};
 function number(id,optional=false){
   const field=e(id);
   if(optional && field.value.trim()==='')return null;
-  if(field.value.trim()==='' || !field.checkValidity() || !Number.isFinite(Number(field.value)))throw Error('Complete the inputs with valid numbers.');
+  if(field.value.trim()==='' || !field.checkValidity() || !Number.isFinite(Number(field.value)))throw Error('Enter a valid '+(electrolyteInputNames[id]||id)+'.');
   if(['pRate','nBagRate','pOtherK'].includes(id)&&typeof FluidReferenceNumbers!=='undefined')return FluidReferenceNumbers.value(field);
   return id==='mHours'&&magnesiumHours?.display===field.value?magnesiumHours.exact:Number(field.value);
 }
 function clearResult(id,message){
+  const notice=e(id+'Unavailable');if(notice){notice.textContent='Unavailable: '+message;notice.hidden=false;}
   const p=document.createElement('p');p.className='help';p.textContent='Invalid: '+message;e(id).replaceChildren(p);e(id+'Steps').replaceChildren();e(id+'Math').open=false;
 }
 function result(id,rows,steps,note=''){
@@ -19,17 +21,18 @@ function result(id,rows,steps,note=''){
   const priority=label=>/pump rate|Run at/i.test(label)?1:/Verified.*rate|Daily-equivalent|Combined entered supplemental K/i.test(label)?2:/duration|Lasts/i.test(label)?3:4;
   rows=[rows[0],...rows.slice(1).sort((a,b)=>priority(a[0])-priority(b[0]))];
   const lines=rows.map(([label,value],i)=>{const line=document.createElement('div');line.className='line'+(i===0?' primary-output':'');const name=document.createElement('span');name.textContent=label;const v=document.createElement('b');v.textContent=value;line.append(name,v);return line;});
-  if(note){const p=document.createElement('p');p.className='help'+(/ABOVE|DECREASE|Caution/.test(note)?' critical-note':'');p.textContent=note;lines.push(p);}
+  if(note){const p=document.createElement('p');p.className='help'+(/ABOVE|DECREASE|Caution|Warning/.test(note)?' critical-note':'');p.textContent=note;lines.push(p);}
   e(id).replaceChildren(...lines);
   e(id+'Steps').replaceChildren(...steps.map(text=>{const li=document.createElement('li');li.textContent=text;return li;}));
 }
-function attempt(id,fn){try{fn();}catch(error){clearResult(id,error.message);}}
+function attempt(id,fn){const notice=e(id+'Unavailable');if(notice){notice.textContent='';notice.hidden=true;}try{fn();}catch(error){clearResult(id,error.message);}}
 function chart(rates,run,render,targetId){
-  const calculated=new Map();
-  for(const dose of new Set(rates.flat())){try{calculated.set(dose,run(dose));}catch{calculated.set(dose,null);}}
+  const calculated=new Map(),reasons=new Map();
+  for(const dose of new Set(rates.flat())){try{calculated.set(dose,run(dose));}catch(error){calculated.set(dose,null);reasons.set(dose,error.message+(targetId==='pDose'&&error.code==='PHOSPHATE_TOTAL_K'?' Review KCl or use the override above.':''));}}
   rates.forEach((row,i)=>render(i,row.map(dose=>calculated.get(dose))));
   document.querySelectorAll(`[data-target="${targetId}"]`).forEach(button=>{
     button.disabled=!calculated.get(Number(button.dataset.value));
+    const reason=e(button.dataset.unavailableReason);if(reason){reason.textContent=button.disabled?'Unavailable: '+reasons.get(Number(button.dataset.value)):'';reason.hidden=!button.disabled;}
     button.setAttribute('aria-pressed',String(e(targetId).value!==''&&Number(e(targetId).value)===Number(button.dataset.value)));
   });
 }
@@ -69,12 +72,19 @@ function updateMagnesium(){
     result('mResult',[['MgSO₄ ADDITIVE TO ADD',ml(r.additive)],['Carrier volume (approx.)',ml(verified.diluent)],['Prepared infusion volume',ml(verified.volume)],['Magnesium for this preparation',format(verified.amount)+' mEq'],['Diluted preparation pump rate',format(verified.pump)+' mL/hr'],['Delivered daily-equivalent dose',format(verified.delivered)+' mEq/kg/day']],[`Daily amount: ${weight} kg × ${dose} mEq/kg/day = ${format(weight*dose)} mEq/day.`,`Preparation amount: ${format(weight*dose)} × ${hours}/24 = ${format(r.amount)} mEq.`,`Additive volume: ${format(r.amount)} ÷ ${stock} mEq/mL = ${format(r.additive,6)} mL.`,`Carrier: ${volume} − ${format(r.additive,6)} = ${format(r.carrier,6)} mL.`,`Pump: ${volume} mL ÷ ${hours} hr = ${format(r.pump)} mL/hr.`,`Verification: ${format(r.amount)} mEq ÷ ${hours} hr ÷ ${weight} kg × 24 = ${format(r.delivered)} mEq/kg/day.`],'Additive volume is not an undiluted infusion rate. Dilute to the stated final volume; the carrier estimate is rounded. '+verified.note);
   });
 }
+let phosphateOverrideContext=null;
 function updatePhosphate(){
+  const overrideField=e('pOverrideK');
+  const context=JSON.stringify(['pWeight','masterSpecies','pRate','pVolume','pStock','pKStock','pOtherK','pMethod','pKclRate','pKclActive'].map(id=>{try{return id==='pKclActive'?e(id)?.checked:['pRate','pOtherK'].includes(id)?number(id):e(id)?.value;}catch{return 'invalid';}}));
+  if(context!==phosphateOverrideContext){if(overrideField)overrideField.checked=false;phosphateOverrideContext=context;}
+  const overrideTotalK=overrideField?.checked===true;
+  if(e('pOverrideStatus'))e('pOverrideStatus').textContent=overrideTotalK?'Warning: clinician override active. Total K may exceed 0.5 mEq/kg/hr. Review all concurrent potassium.':'Off by default. Patient, fluid and K-source changes clear it.';
+
   if(e('pKclTotal'))e('pKclTotal').textContent='Total potassium: —';
   if(e('pKclTotalValue'))e('pKclTotalValue').textContent='—';
   for(const id of ['pKRateHero','pKHourlyHero','pKAmountHero'])e(id).textContent='—';
   e('pKHeroStatus').textContent='Choose a valid phosphate rate to show its potassium contribution.';
-  const run=dose=>{const p={weight:number('pWeight'),fluidRate:number('pRate'),volume:number('pVolume'),phosStock:number('pStock'),kStock:number('pKStock'),otherK:number('pOtherK'),method:e('pMethod').value,dose};const r=phosphate(p);return {...r,verification:PreparationCheck.phosphate(p,r)};};
+  const run=dose=>{const p={weight:number('pWeight'),fluidRate:number('pRate'),volume:number('pVolume'),phosStock:number('pStock'),kStock:number('pKStock'),otherK:number('pOtherK'),method:e('pMethod').value,dose,overrideTotalK};const r=phosphate(p);return {...r,verification:PreparationCheck.phosphate(p,r)};};
   chart([[.01,.02],[.03,.06],[.06,.12]],run,(i,values)=>{e('pK'+i).textContent=values.map(v=>v?format(v.verification.potassiumRate):'—').join(' – ');e('pMl'+i).textContent=values.map(v=>v?ml(v.additive):'— mL').join(' – ');},'pDose');
   attempt('pResult',()=>{
     const dose=number('pDose'),r=run(dose),weight=number('pWeight'),flow=number('pRate'),stock=number('pStock'),k=number('pKStock'),volume=number('pVolume'),other=number('pOtherK'),c=dose*weight/flow,verified=r.verification;
@@ -82,7 +92,7 @@ function updatePhosphate(){
     if(e('pKclTotal'))e('pKclTotal').textContent=`KPhos ${verified.potassiumRate.toFixed(4)} + KCl ${other.toFixed(4)} = ${verified.totalK.toFixed(4)} mEq/kg/hr`;
     e('pKRateHero').textContent=format(verified.potassiumRate);e('pKHourlyHero').textContent=format(verified.potassiumRate*weight);e('pKAmountHero').textContent=format(verified.potassiumAmount,1);
     e('pKHeroStatus').textContent=`Selected phosphate rate: ${dose} mmol/kg/hr. Combined entered supplemental K, including separate infusions: ${format(verified.totalK)} mEq/kg/hr.`;
-    result('pResult',[['KPHOS ADDITIVE TO ADD',ml(r.additive)],['Carrier volume (approx.)',ml(verified.diluent)],['Final prepared volume',ml(verified.volume)],['Phosphate in preparation',format(verified.amount)+' mmol'],['Potassium in preparation',format(verified.potassiumAmount)+' mEq'],['K from KPhos',format(verified.potassiumRate)+' mEq/kg/hr'],['Combined entered supplemental K',format(verified.totalK)+' mEq/kg/hr'],['Run at',ReferenceNumbers.display(flow)+' mL/hr'],['Lasts',format(verified.hours)+' hr'],['Delivered phosphate rate',format(verified.delivered)+' mmol/kg/hr']],[`Phosphate needed: ${dose} mmol/kg/hr × ${weight} kg = ${format(dose*weight)} mmol/hr.`,`Required phosphate concentration: ${format(dose*weight)} ÷ ${flow} = ${format(c,6)} mmol/mL.`,e('pMethod').value==='final'?`Additive: ${volume} × ${format(c,6)} ÷ ${stock} = ${format(r.additive,6)} mL.`:`Additive: ${volume} × ${format(c,6)} ÷ (${stock} − ${format(c,6)}) = ${format(r.additive,6)} mL.`,`K contribution: ${dose} × ${k} ÷ ${stock} = ${format(r.kRate,6)} mEq/kg/hr.`,`Total entered supplemental K: ${format(r.kRate,6)} + ${other} = ${format(r.totalK,6)} mEq/kg/hr.`,`Phosphate check: ${format(r.phosphateAmount)} mmol ÷ ${format(r.finalVolume)} mL × ${flow} mL/hr ÷ ${weight} kg = ${format(r.delivered)} mmol/kg/hr.`],'No KCl co-mixing is calculated. Dilute to the final volume; the carrier estimate is rounded. If separately infused, use the displayed K contribution in the KCl separate-infusion field. '+verified.note);
+    result('pResult',[['KPHOS ADDITIVE TO ADD',ml(r.additive)],['Carrier volume (approx.)',ml(verified.diluent)],['Final prepared volume',ml(verified.volume)],['Phosphate in preparation',format(verified.amount)+' mmol'],['Potassium in preparation',format(verified.potassiumAmount)+' mEq'],['K from KPhos',format(verified.potassiumRate)+' mEq/kg/hr'],['Combined entered supplemental K',format(verified.totalK)+' mEq/kg/hr'],['Run at',ReferenceNumbers.display(flow)+' mL/hr'],['Lasts',format(verified.hours)+' hr'],['Delivered phosphate rate',format(verified.delivered)+' mmol/kg/hr']],[`Phosphate needed: ${dose} mmol/kg/hr × ${weight} kg = ${format(dose*weight)} mmol/hr.`,`Required phosphate concentration: ${format(dose*weight)} ÷ ${flow} = ${format(c,6)} mmol/mL.`,e('pMethod').value==='final'?`Additive: ${volume} × ${format(c,6)} ÷ ${stock} = ${format(r.additive,6)} mL.`:`Additive: ${volume} × ${format(c,6)} ÷ (${stock} − ${format(c,6)}) = ${format(r.additive,6)} mL.`,`K contribution: ${dose} × ${k} ÷ ${stock} = ${format(r.kRate,6)} mEq/kg/hr.`,`Total entered supplemental K: ${format(r.kRate,6)} + ${other} = ${format(r.totalK,6)} mEq/kg/hr.`,`Phosphate check: ${format(r.phosphateAmount)} mmol ÷ ${format(r.finalVolume)} mL × ${flow} mL/hr ÷ ${weight} kg = ${format(r.delivered)} mmol/kg/hr.`],(overrideTotalK?`Warning: clinician override active. Displayed total K ${verified.totalK.toFixed(4)} mEq/kg/hr${verified.totalK>.5?' exceeds 0.5 mEq/kg/hr':''}. `:'')+'No KCl co-mixing is calculated. Dilute to the final volume; the carrier estimate is rounded. If separately infused, use the displayed K contribution in the KCl separate-infusion field. '+verified.note);
   });
 }
 function updateDextrose(){
@@ -175,6 +185,8 @@ function updateSodium(){
   });
 }
 const updatePage=()=>({magnesium:updateMagnesium,phosphate:updatePhosphate,dextrose:updateDextrose,sodium:updateSodium}[document.body.dataset.tool])();
+if(e('pOverrideK'))e('pOverrideK').addEventListener('change',updatePage);
+if(document.body.dataset.tool==='phosphate')window.addEventListener?.('pageshow',()=>{if(e('pOverrideK'))e('pOverrideK').checked=false;updatePage();});
 // Optional Mg context now sits outside the preparation form.
 if(document.body.dataset.tool==='magnesium')for(const id of ['mBloodwork','mLower','mUpper','mRefractory'])e(id).addEventListener('input',updatePage);
 // Compact layouts keep shared patient fields outside the calculation forms.
