@@ -515,3 +515,7 @@ body.blood-compact{background:#f4ecef}.blood-compact .blood-results .metric{bord
 
 .unavailable-note{display:block;font-size:11px;line-height:1.4;color:#794d13;margin:5px 0 0;font-weight:500;white-space:normal}.unavailable-note[hidden]{display:none}
 .phosphate-limit-override{font-size:12px!important;margin:10px 0 4px;line-height:1.4}.phosphate-limit-override input{width:auto;margin-right:5px}
+
+.blood-draw-panel h2{margin-bottom:8px}.blood-draw-scroll{max-height:440px;overflow:auto}.blood-draw-table{min-width:1020px;table-layout:fixed}.blood-draw-table caption{text-align:left;font-size:12px;margin-bottom:8px}.blood-draw-table th,.blood-draw-table td{font-size:12px;padding:6px;vertical-align:top}.blood-draw-table thead th{position:sticky;top:0;background:#eaf3f3;z-index:1}.blood-draw-table th:nth-child(3){width:145px}.blood-draw-table th:nth-child(6){width:180px}.blood-draw-table th:last-child{width:65px}.blood-draw-table input{width:100%;min-width:0;padding:6px;margin:0;border:1px solid #9eb3bf;border-radius:5px;font:13px system-ui;color:var(--ink);background:#fff}.blood-draw-table .unit-input{margin-top:0}.blood-draw-table button{padding:6px;font-size:12px}.blood-draw-table output{display:block;padding-top:8px;font-weight:700}.blood-draw-scroll:focus-visible{outline:3px solid #97cee5;outline-offset:2px}
+
+#bDrawHeading{scroll-margin-top:calc(var(--patient-header-height,110px) + 16px)}.blood-draw-jump{font-weight:700}
