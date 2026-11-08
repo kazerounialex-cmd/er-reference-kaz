@@ -9,6 +9,11 @@ if not r.all(lambda n:n.attrs.get('id')=='bloodDrawForm'):
  main=r.byid('main-content');form=r.byid('bloodForm');main.add(panel,main.children.index(form)+1)
 r.one(lambda n:n.tag=='p' and n.cls('intro')).children=['Uses the shared patient above. Review collection guides, record draws below, then print or export the completed sheet.']
 r.byid('bDrawHeading').attrs['tabindex']='-1'
+if not r.all(lambda n:n.attrs.get('id')=='bClearPatient'):
+ heading=r.one(lambda n:n.cls('blood-patient')).one(lambda n:n.tag=='h2')
+ row=P('<div class="blood-collection-heading"><button id="bClearPatient" type="button" data-clear-all aria-label="Clear patient and draw log">Clear patient</button></div>').root.children[0]
+ heading.parent.add(row,heading.parent.children.index(heading));row.add(heading,0)
+
 if not r.all(lambda n:n.cls('blood-draw-jump')):
  actions=r.byid('bPrint').parent;actions.add(P('<a class="blood-draw-jump" href="#bDrawHeading">Enter draws ↓</a>').root.children[0],0)
 r.byid('bExportStatus').children=['Entered draws are included in preview, print/PDF and exports. Unused rows remain blank for handwriting.']
