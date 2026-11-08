@@ -145,3 +145,13 @@ The clinician-selected choices are 1.0 mEq/kg/day generally and 0.5 mEq/kg/day f
 ## Unavailable results and phosphate exception
 
 See `UNAVAILABLE-RESULTS.md` for the site review and override scope. `scripts/unavailable-results.py` maintains adjacent chart reasons, insulin preset descriptions and the default-off phosphate combined-K override. Missing/invalid values and impossible mixtures cannot be overridden. Run `ER_REFERENCE_TEST_URL=http://127.0.0.1:8000 node scripts/check-unavailable-browser.cjs` for the optional real-browser regression, in addition to the full suite and generator checks.
+
+## Fillable blood draw log
+
+The dedicated Blood Collection page has 16 editable rows for date/time, blood removed, site, reason and initials. It calculates running totals in row order. The preview, **Print calculated cage sheet / Save PDF**, downloaded HTML and CSV include the same entries; unused rows remain blank for handwriting. Recorded volumes retain their entered precision, with a leading zero added when printing/exporting `.25` as `0.25`. Running totals remove floating-point display noise without feeding rounding back into calculations.
+
+Log entries, patient/cage details and collection-plan inputs persist in this tab's session. **Reset collection plan** restores calculation defaults while retaining entries and patient details; **New patient** clears them, including when returning through browser history. Nothing is sent to a server, and closing the tab is not a backup. Print or export to retain a copy. The Original Sheet's separate log is not combined automatically.
+
+Sheet totals do not calculate rolling 24-hour/14-day totals, remaining allowances or whether a draw is safe. Prior draws and other sheets still need reconciliation. An entered row without a valid blood volume shows a warning; exports are unavailable until incomplete values are corrected, so a partial total cannot look complete. Existing collection-guide formulas and clinical assumptions are unchanged.
+
+`scripts/fillable-blood-log.py` maintains the generated page. `blood-log-calc.js` owns row validation/totals; `blood-log.js` owns entry and tab-session state. Run the full suite and generator checks, plus `ER_REFERENCE_TEST_URL=http://127.0.0.1:8000 node scripts/check-blood-log-browser.cjs` for actual browser entry, print/export, reload/navigation and patient/history reset checks.

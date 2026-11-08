@@ -54,3 +54,5 @@ runpy.run_path(str(Path(__file__).resolve().parent / 'simple-magnesium.py'))
 runpy.run_path(str(Path(__file__).resolve().parent / 'input-units.py'))
 
 runpy.run_path(str(Path(__file__).resolve().parent / 'unavailable-results.py'))
+
+runpy.run_path(str(Path(__file__).resolve().parent / 'fillable-blood-log.py'))
