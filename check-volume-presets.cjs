@@ -10,9 +10,8 @@ for(const name of ['potassium','magnesium','phosphate','sodium','dextrose','cri-
  assert.match(html,/data-volume-for=/,name);
 }
 const norepi=fs.readFileSync('dist/cri-norepinephrine.html','utf8');
-const volumeSelect=norepi.match(/<select id="norepiVolumePreset">([\s\S]*?)<\/select>/)[1];
-assert.deepEqual([...volumeSelect.matchAll(/<option value="([^"]+)"/g)].map(match=>match[1]),['12','30','60','custom']);
-assert.match(volumeSelect,/<option value="12" selected>/);
+assert.deepEqual([...norepi.matchAll(/data-volume-target="norepiVolume" data-volume-value="(\d+)"/g)].map(match=>match[1]),['12','30','60']);
+assert.match(norepi,/<input id="norepiVolume" type="number" min="0" step="any" value="12">/);
 const k=fs.readFileSync('dist/potassium.html','utf8');
 for(const b of k.matchAll(/<button[^>]*class="rate-pick"[^>]*>([\s\S]*?)<\/button>/g))assert.match(b[1],/mEq\/kg\/hr/);
 console.log('Passed volume shortcut events, locked-field protection, all preparation pages, and potassium button units.');

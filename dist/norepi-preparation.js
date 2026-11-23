@@ -1,7 +1,6 @@
 (() => {
   const $ = id => document.getElementById(id);
   const concentrationPreset = $('norepiConcentrationPreset');
-  const volumePreset = $('norepiVolumePreset');
   const concentrationField = $('prepConcentration');
   const volumeField = $('norepiVolume');
   const stockField = $('criStock');
@@ -71,9 +70,8 @@
 
   function update() {
     const customConcentration = concentrationPreset.value === 'custom';
-    const customVolume = volumePreset.value === 'custom';
     const concentration = Number(customConcentration ? concentrationField.value : concentrationPreset.value);
-    const volume = Number(customVolume ? volumeField.value : volumePreset.value);
+    const volume = Number(volumeField.value);
     const stock = Number(stockField.value);
     const central = centralConfirmed && accessField.checked;
     const needsCentral = concentration > peripheryLimit && !central;
@@ -83,7 +81,6 @@
       : tooHigh ? 'Prepared concentration exceeds the 64 mcg/mL application limit.' : '';
 
     $('norepiCustomConcentration').hidden = !customConcentration;
-    $('norepiCustomVolume').hidden = !customVolume;
     $('norepiPreset32').disabled = !central;
     $('norepiPreset64').disabled = !central;
     $('norepiSwitch').hidden = !needsCentral;
@@ -167,10 +164,6 @@
   concentrationPreset.addEventListener('change', () => {
     if (concentrationPreset.value === 'custom' && !concentrationField.value) concentrationField.value = lastConcentration;
     manualPump = false;
-    update();
-  });
-  volumePreset.addEventListener('change', () => {
-    if (volumePreset.value === 'custom' && !volumeField.value) volumeField.value = volumeField.defaultValue || 12;
     update();
   });
   $('norepiSwitch').onclick = () => {
