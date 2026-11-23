@@ -11,11 +11,15 @@
 <option value="8">8</option><option value="16" selected>16</option><option id="norepiPreset32" value="32" disabled>32 · central</option><option id="norepiPreset64" value="64" disabled>64 · central</option><option value="custom">Custom</option>
 </select></label>
 <div id="norepiCustomConcentration" hidden><label>Custom concentration · mcg/mL <input id="prepConcentration" type="number" min="0" step="any" aria-describedby="norepiAccessHelp norepiConcentrationError" autocomplete="off"></label></div>
-<label>Final preparation volume · mL
-<select id="norepiVolumePreset">
-<option value="12" selected>12</option><option value="30">30</option><option value="60">60</option><option value="custom">Custom</option>
-</select></label>
-<div id="norepiCustomVolume" hidden><label>Custom final volume · mL <input id="norepiVolume" type="number" min="0" step="any"></label></div>
+<div>
+<div class="volume-presets" role="group" aria-label="Quick final preparation volumes in mL">
+<button type="button" data-volume-target="norepiVolume" data-volume-value="12" aria-label="Set final preparation volume to 12 mL">12</button>
+<button type="button" data-volume-target="norepiVolume" data-volume-value="30" aria-label="Set final preparation volume to 30 mL">30</button>
+<button type="button" data-volume-target="norepiVolume" data-volume-value="60" aria-label="Set final preparation volume to 60 mL">60</button>
+<small>mL</small>
+</div>
+<label>Final preparation volume · mL <input id="norepiVolume" type="number" min="0" step="any" value="12"></label>
+</div>
 </div>
 <p class="help">Choose a compatible syringe with sufficient capacity for the final preparation volume.</p>
 <label class="norepi-access"><input type="checkbox" id="norepiCentral" autocomplete="off"> Central venous catheter present and selected for this infusion.</label>

@@ -33,7 +33,7 @@ const set = (id, value, type = 'input') => {
   fields[id].fire(type);
 };
 const concentration = value => set('norepiConcentrationPreset', value, 'change');
-const volume = value => set('norepiVolumePreset', value, 'change');
+const volume = value => set('norepiVolume', value);
 const central = (checked, trusted = true) => {
   fields.norepiCentral.checked = checked;
   fields.norepiCentral.fire('change', trusted);
@@ -136,7 +136,6 @@ events.newpatient();
 assert.equal(fields.norepiCentral.checked, false);
 unavailable();
 set('prepConcentration', 16);
-volume('custom');
 set('norepiVolume', 12.04);
 assert.match(fields.prepResult.innerHTML, /0\.19264 <span>mL/); // 0.193 mL would exceed the 16 mcg/mL policy.
 set('norepiVolume', .000001);

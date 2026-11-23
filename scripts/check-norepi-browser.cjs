@@ -39,6 +39,16 @@ const { chromium } = require('playwright');
 
     await el('masterWeight').fill('20');
     assert.match(await text('norepiDelivery'), /3\.75 mL\/hr/);
+    await page.getByRole('button', { name: 'Set final preparation volume to 30 mL' }).focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await el('norepiVolume').inputValue(), '30');
+    assert.match(await text('norepiDelivery'), /8\.00 hr/);
+    await el('norepiVolume').fill('24.5');
+    assert.match(await text('prepResult'), /24\.500 mL/);
+    assert.match(await text('norepiDelivery'), /6\.53 hr/);
+    await el('norepiVolume').fill('');
+    assert.equal(await el('printNorepiChart').isDisabled(), true);
+    await page.getByRole('button', { name: 'Set final preparation volume to 12 mL' }).click();
     await el('norepiConcentrationPreset').focus();
     await page.keyboard.press('ArrowUp');
     assert.equal(await el('norepiConcentrationPreset').inputValue(), '8');
