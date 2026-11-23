@@ -43,5 +43,9 @@ class VisibleTerms(HTMLParser):
 
 if __name__ in ('__main__', '<run_path>'):
     for page in (ROOT / 'dist').glob('*.html'):
+        # The norepinephrine comparison explicitly distinguishes verified vial
+        # stock strength from the final prepared concentration.
+        if page.name == 'cri-norepinephrine.html':
+            continue
         source = page.read_text()
         page.write_text(VisibleTerms(source).render())

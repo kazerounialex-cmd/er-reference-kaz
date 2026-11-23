@@ -1,0 +1,36 @@
+<p class="notice">Have a replacement syringe ready • Avoid interruption • Monitor catheter site</p>
+<section class="panel" id="norepiPreparation">
+<h2>Prepare an infusion</h2>
+<div class="cri-controls">
+<label>Concentration · mcg/mL
+<select id="norepiConcentrationPreset" aria-describedby="norepiAccessHelp">
+<option value="8">8</option><option value="16" selected>16</option><option id="norepiPreset32" value="32" disabled>32 · central</option><option id="norepiPreset64" value="64" disabled>64 · central</option><option value="custom">Custom</option>
+</select></label>
+<div id="norepiCustomConcentration" hidden><label>Custom concentration · mcg/mL <input id="prepConcentration" type="number" min="0" step="any" aria-describedby="norepiAccessHelp norepiConcentrationError" autocomplete="off"></label></div>
+<label>Final preparation volume · mL
+<select id="norepiVolumePreset">
+<option value="12" selected>12</option><option value="30">30</option><option value="60">60</option><option value="custom">Custom</option>
+</select></label>
+<div id="norepiCustomVolume" hidden><label>Custom final volume · mL <input id="norepiVolume" type="number" min="0" step="any"></label></div>
+</div>
+<p class="help">Choose a compatible syringe with sufficient capacity for the final preparation volume.</p>
+<label class="norepi-access"><input type="checkbox" id="norepiCentral" autocomplete="off"> Central venous catheter present and selected for this infusion.</label>
+<p class="help" id="norepiAccessHelp">Central catheter required for concentrations &gt;16 mcg/mL. This is an application policy. Assess peripheral access and monitor the site at any concentration. The existing 64 mcg/mL application limit still applies.</p>
+<p id="norepiConcentrationError" class="concentration-error" role="alert" hidden></p>
+<button type="button" id="norepiSwitch" hidden>Switch to 16 mcg/mL</button>
+<p id="norepiChange" class="notice" role="status" hidden>Changing concentration requires verification of pump settings and the local line-changeover procedure. Residual medication in tubing can delay delivery of the new concentration.</p>
+<details class="stock-settings"><summary>Stock strength · 1 mg/mL by default</summary>
+<p class="help">Verify the vial label. Enter norepinephrine equivalent strength in mcg/mL.</p>
+<label>Stock · mcg/mL norepinephrine equivalent <input id="criStock" type="number" min="0" step="any" value="1000" readonly autocomplete="off"></label>
+<button type="button" id="criLock">Edit stock strength</button></details>
+<div id="prepResult" aria-live="polite"></div>
+<div class="cri-controls">
+<label>Desired dose · mcg/kg/min <input id="criDose" type="number" min="0" step="any" value="0.05"></label>
+<label>Pump rate · mL/hr <input id="norepiPump" type="number" min="0" step="any" disabled autocomplete="off" aria-describedby="norepiPumpHelp"></label>
+</div>
+<p class="help" id="norepiPumpHelp">Editing the pump rate recalculates the delivered dose at the selected concentration.</p>
+<div id="norepiDelivery" aria-live="polite"></div>
+<p class="help">Duration estimates when the syringe empties at the current rate. It changes with titration. Check preparation expiry separately.</p>
+<p class="help">Verify patient weight, stock strength, concentration and pump settings. Use mcg/kg/min mode when supported by the pump and local protocol.</p>
+<p class="help">Confirm the prescribed settings before starting an infusion.</p>
+</section>

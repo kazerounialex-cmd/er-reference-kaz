@@ -9,6 +9,9 @@ expected = '<label for="kStock">KCl additive <input id="kStock" data-stock aria-
 assert VisibleTerms(fixture).render() == expected
 assert VisibleTerms(expected).render() == expected
 for page in (ROOT / 'dist').glob('*.html'):
+    if page.name == 'cri-norepinephrine.html':
+        assert 'mcg/mL norepinephrine equivalent' in page.read_text()
+        continue
     parsed = VisibleTerms(page.read_text())
     assert not parsed.edits, f'{page.name}: legacy additive terminology remains in visible text or accessible labels'
 print('Terminology passed: all page text/accessibility labels, preserved identifiers/scripts/base-fluid wording and idempotent generation.')

@@ -1,1 +1,18 @@
-<section class="panel norepi-titration" id="norepiTitration"><h2>Norepinephrine · titration chart</h2><div class="chart-actions"><button type="button" id="printNorepiChart" disabled>Print chart only</button><button type="button" id="previewNorepiChart">Show / hide chart</button></div><p class="help chart-screen-note">Two-column reference for this patient and this preparation. Keep the concentration fixed while titrating.</p><div id="norepiChartPreview" class="chart-preview" hidden><p>Patient / cage: ____________________</p><p id="norepiChartMeta"></p><table id="norepiChartTable"></table><p class="chart-footnote">Titrate to the veterinarian’s prescribed BP/perfusion goal. Rows are calculation references, not instructions for dose increments or timing; the last row is not a maximum dose. Rates are rounded. Reprint if patient weight or preparation concentration changes.</p></div></section>
+<section class="panel norepi-titration" id="norepiTitration">
+<h2>Norepinephrine · titration chart</h2>
+<div class="chart-actions"><button type="button" id="printNorepiChart" disabled>Print chart only</button><button type="button" id="previewNorepiChart" aria-controls="norepiChartPreview" aria-expanded="false" disabled>Show chart</button></div>
+<p id="norepiChartStatus" class="help" role="status">A valid patient preparation is required to generate the chart.</p>
+<div id="norepiChartPreview" class="chart-preview" hidden>
+<p>Patient / cage: ____________________</p>
+<p id="norepiChartMeta"></p><p id="norepiChartMix"></p>
+<table id="norepiChartTable"></table>
+<p class="chart-footnote">Keep the concentration fixed while titrating to the prescribed goal. The chart gives calculated rates for reference target doses. Confirm actual pump precision and reprint after any input change.</p>
+</div></section>
+<section class="panel">
+<h2>Syringe preparation reference</h2>
+<p>Add D5W to the stated final volume.</p>
+<p id="norepiReferenceNote" class="help"></p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Syringe preparation reference">
+<table class="norepi-reference"><caption>Stock volume in mL by final preparation volume</caption>
+<thead><tr><th scope="col">mcg/mL</th><th scope="col">12 mL</th><th scope="col">30 mL</th><th scope="col">60 mL</th></tr></thead><tbody id="norepiReference"></tbody></table>
+</div></section>
