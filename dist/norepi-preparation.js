@@ -13,6 +13,7 @@
   const centralMessage = 'Central catheter required for concentrations >16 mcg/mL.';
   const unit = 'mcg/kg/min';
   const show = value => Number(value.toPrecision(12)).toString();
+  const amount = value => value < 0.0005 ? value.toExponential(3) : value.toFixed(3);
   const positive = value => Number.isFinite(value) && value > 0;
   let centralConfirmed = false;
   let manualPump = false;
@@ -23,13 +24,15 @@
     if (concentration >= stock) throw Error('Prepared concentration must be below the verified stock strength.');
     const { drug, diluent } = CriCalc.mix(stock, concentration, volume);
     CriCalc.positive(drug, diluent);
-    // Keep rounding from increasing the stock fraction when users make up to final volume.
-    const displayedDrug = Number(show(drug));
-    const stockVolume = displayedDrug > drug
-      ? show(displayedDrug - 10 ** (Math.floor(Math.log10(displayedDrug)) - 11))
-      : show(drug);
-    CriCalc.positive(Number(stockVolume));
-    return { stockVolume, diluent: show(diluent), review: drug < 1 || stockVolume !== String(drug) };
+    const roundedStock = amount(drug);
+    // Preserve the access ceiling even when a three-place display would exceed it.
+    const limit = concentration <= peripheryLimit ? peripheryLimit : maximum;
+    const roundedAboveLimit = Number(roundedStock) * stock / volume > limit * (1 + Number.EPSILON * 4);
+    const roundingChangesAmount = Math.abs(Number(roundedStock) / drug - 1) > 0.01;
+    const extraPrecision = roundedAboveLimit || roundingChangesAmount;
+    const stockVolume = extraPrecision ? show(drug) : roundedStock;
+    return { stockVolume, diluent: amount(diluent), finalVolume: amount(volume),
+      review: drug < 1 || extraPrecision || Number(stockVolume) !== drug };
   }
 
   function reference(stock, central) {
@@ -56,6 +59,7 @@
     $('norepiTitration').setAttribute('data-print-ready', String(available));
     $('printNorepiChart').disabled = !available;
     $('previewNorepiChart').disabled = !available;
+    $('norepiChartShortcut').textContent = available ? 'Open printable titration chart' : 'Titration chart availability';
     $('norepiChartStatus').hidden = available;
     if (!available) {
       $('norepiChartMeta').textContent = '';
@@ -104,10 +108,14 @@
       if (!positive(stock)) throw Error('Enter a positive verified stock strength.');
       if (!positive(volume)) throw Error('Enter a positive final preparation volume.');
       const mix = preparation(stock, concentration, volume);
-      const instructions = `Norepinephrine stock: ${mix.stockVolume} mL · D5W: ${mix.diluent} mL · Final preparation volume: ${volume} mL.`;
+      const instructions = `Norepinephrine stock: ${mix.stockVolume} mL · D5W: ${mix.diluent} mL · Final preparation volume: ${mix.finalVolume} mL.`;
       const measurement = mix.review ? 'Measurement review required. Verify that the stock volume is measurable with approved equipment.' : '';
       $('prepResult').innerHTML = `<h3>Prepare — ${concentration} mcg/mL</h3>
-        <p>${instructions} Add D5W to the stated final volume.</p>${measurement ? `<p class="notice">${measurement}</p>` : ''}`;
+        <dl class="norepi-amounts">
+          <div><dt>Norepinephrine stock</dt><dd>${mix.stockVolume} <span>mL</span></dd></div>
+          <div><dt>D5W</dt><dd>${mix.diluent} <span>mL</span></dd></div>
+          <div><dt>Final preparation volume</dt><dd>${mix.finalVolume} <span>mL</span></dd></div>
+        </dl><p>Add D5W to the stated final volume.</p>${measurement ? `<p class="notice">${measurement}</p>` : ''}`;
 
       const weight = Number($('weight').value);
       if (!positive(weight)) throw Error('Enter a valid shared patient weight to calculate a pump rate.');
@@ -120,7 +128,9 @@
       const delivered = pump * concentration / 60 / weight;
       const hours = volume / pump;
       CriCalc.positive(delivered, hours);
-      const duration = hours >= 1 ? `${show(hours)} hr` : `${show(hours * 60)} min`;
+      const minutes = hours * 60;
+      const duration = hours >= 1 ? `${hours.toFixed(2)} hr`
+        : minutes < 0.005 ? '&lt;0.01 min' : `${minutes.toFixed(2)} min`;
       const access = concentration > peripheryLimit
         ? 'Central catheter required and confirmed.' : 'Assess catheter suitability and monitor the site.';
       const doses = [...new Set([...CRI_DATA.norepinephrine.rates, desiredDose])].sort((a, b) => a - b);
@@ -186,6 +196,9 @@
     stockField.readOnly = !stockField.readOnly;
     $('criLock').textContent = stockField.readOnly ? 'Edit stock strength' : 'Lock stock strength';
     if (!stockField.readOnly) stockField.focus();
+  };
+  $('norepiChartShortcut').onclick = () => {
+    if (!$('previewNorepiChart').disabled) setPreview(true);
   };
   $('previewNorepiChart').onclick = () => setPreview($('norepiChartPreview').hidden);
   $('printNorepiChart').onclick = () => {

@@ -1,6 +1,10 @@
 <p class="notice">Have a replacement syringe ready • Avoid interruption • Monitor catheter site</p>
 <section class="panel" id="norepiPreparation">
+<div class="norepi-prepare-heading">
 <h2>Prepare an infusion</h2>
+<a id="norepiChartShortcut" href="#norepiTitration">Titration chart availability</a>
+</div>
+<div id="prepResult" aria-live="polite"></div>
 <div class="cri-controls">
 <label>Concentration · mcg/mL
 <select id="norepiConcentrationPreset" aria-describedby="norepiAccessHelp">
@@ -23,7 +27,6 @@
 <p class="help">Verify the vial label. Enter norepinephrine equivalent strength in mcg/mL.</p>
 <label>Stock · mcg/mL norepinephrine equivalent <input id="criStock" type="number" min="0" step="any" value="1000" readonly autocomplete="off"></label>
 <button type="button" id="criLock">Edit stock strength</button></details>
-<div id="prepResult" aria-live="polite"></div>
 <div class="cri-controls">
 <label>Desired dose · mcg/kg/min <input id="criDose" type="number" min="0" step="any" value="0.05"></label>
 <label>Pump rate · mL/hr <input id="norepiPump" type="number" min="0" step="any" disabled autocomplete="off" aria-describedby="norepiPumpHelp"></label>

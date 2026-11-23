@@ -529,3 +529,13 @@ body.blood-compact{background:#f4ecef}.blood-compact .blood-results .metric{bord
 @media print{
  body[data-cri="norepinephrine"] main>#norepiTitration:not([data-print-ready="true"]) .chart-preview{display:none!important}
 }
+
+.norepi-prepare-heading{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:.25rem 1rem}
+#norepiChartShortcut{font-size:.85rem;font-weight:700}
+#norepiTitration{scroll-margin-top:calc(var(--patient-header-height,110px) + 16px)}
+.norepi-amounts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;margin:.5rem 0}
+.norepi-amounts div{padding:.65rem .8rem;background:var(--tone-eef1f4);border-radius:6px;min-width:0}
+.norepi-amounts dt{font-size:.85rem;font-weight:700}
+.norepi-amounts dd{margin:.1rem 0 0;font-size:clamp(1.65rem,3.2vw,2.65rem);font-weight:800;line-height:1.15;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.norepi-amounts dd span{font-size:.6em;white-space:nowrap}
+@media(max-width:580px){.norepi-amounts{grid-template-columns:1fr}.norepi-amounts div{display:flex;align-items:baseline;justify-content:space-between;gap:.6rem}}
