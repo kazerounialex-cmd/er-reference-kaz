@@ -539,3 +539,6 @@ body.blood-compact{background:#f4ecef}.blood-compact .blood-results .metric{bord
 .norepi-amounts dd{margin:.1rem 0 0;font-size:clamp(1.65rem,3.2vw,2.65rem);font-weight:800;line-height:1.15;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 .norepi-amounts dd span{font-size:.6em;white-space:nowrap}
 @media(max-width:580px){.norepi-amounts{grid-template-columns:1fr}.norepi-amounts div{display:flex;align-items:baseline;justify-content:space-between;gap:.6rem}}
+
+.norepi-prep-controls{align-items:end}
+.norepi-prep-controls input,.norepi-prep-controls select{min-height:50px}

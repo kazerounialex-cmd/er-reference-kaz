@@ -32,6 +32,12 @@ const { chromium } = require('playwright');
       await page.pdf({ path, format: 'Letter' });
       return execFileSync('pdftotext', [path, '-'], { encoding: 'utf8' }).replace(/\s+/g, ' ');
     };
+    async function checkPrepAlignment() {
+      const concentration = await el('norepiConcentrationPreset').boundingBox();
+      const volume = await el('norepiVolume').boundingBox();
+      assert(Math.abs(concentration.y - volume.y) <= 1, 'Preparation fields should share a top edge');
+    }
+    await checkPrepAlignment();
     assert.match(await text('prepResult'), /0\.192 mL[\s\S]*11\.808 mL/);
     assert(await page.locator('.norepi-amounts dd').first().evaluate(node => parseFloat(getComputedStyle(node).fontSize)) >= 26);
     assert.equal(await el('norepiPump').inputValue(), '');
@@ -81,6 +87,7 @@ const { chromium } = require('playwright');
     assert.doesNotMatch(blocked, /Reference target|mL\/hr|Norepinephrine stock/);
 
     await page.setViewportSize({ width: 390, height: 844 });
+    await checkPrepAlignment();
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
     await page.screenshot({ path: join(dir, 'norepi-mobile-locked.png'), fullPage: true });
     await el('norepiSwitch').click();
